@@ -8,14 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var slideShowIsRunning: Bool = false
+    @State var images: [Image]? = nil
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            DefaultView(images: $images, slideshowRunning: $slideShowIsRunning)
+            if slideShowIsRunning {
+                SlideView(images: images ?? [], slideshowIsRunning: $slideShowIsRunning)
+            }
         }
-        .padding()
+
     }
 }
 

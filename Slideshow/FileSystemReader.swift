@@ -10,6 +10,8 @@ import SwiftUI
 struct FileSystemReader {
     let fileManager: FileManager = FileManager.default
     var selectedURL: URL? = nil
+    let supportedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "heic", "tiff"]
+
 
     mutating func selectedFileorFolder() -> URL? {
         let panel = NSOpenPanel()
@@ -27,15 +29,24 @@ struct FileSystemReader {
     func selectedImageURL() -> URL? {
         guard let selectedURL else { return nil }
         if selectedURL.hasDirectoryPath {
-            do {
-                let contents = try fileManager.contentsOfDirectory(at: selectedURL, includingPropertiesForKeys: [])
-                let imageURLs = contents.filter({ $0.pathExtension == "jpg" }).sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+            if let enumerator = fileManager.enumerator(at: selectedURL, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants])  {
+                var foundImages: [URL] = []
 
-                return imageURLs.first
-            } catch {
-                // Can't get contents of directory
-                return nil
+                for case let fileURL as URL in enumerator {
+                    guard supportedExtensions.contains(fileURL.pathExtension.lowercased()) else { continue }
+
+                    // Check that it's a regular file (not a directory or symlink)
+                    if let resourceValues = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isAliasFileKey]),
+                       resourceValues.isRegularFile == true {
+                        foundImages.append(fileURL)
+                    }
+                }
+
+                if !foundImages.isEmpty {
+                    return foundImages.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }).first
+                }
             }
+            return nil
         } else {
             return selectedURL
         }
@@ -48,18 +59,24 @@ struct FileSystemReader {
         } else {
             selectedFolder = selectedFileorFolder.deletingLastPathComponent()
         }
-        do {
-            var images: [Image] = []
-            let contents = try fileManager.contentsOfDirectory(at: selectedFolder, includingPropertiesForKeys: [])
-            let imageURLs = contents.filter({ $0.pathExtension == "jpg" }).sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
-            for url in imageURLs {
+        var images: [Image] = []
+        if let enumerator = fileManager.enumerator(at: selectedFolder, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants])  {
+            var foundImageURLs: [URL] = []
+
+            for case let fileURL as URL in enumerator {
+                guard supportedExtensions.contains(fileURL.pathExtension.lowercased()) else { continue }
+
+                // Check that it's a regular file (not a directory or symlink)
+                if let resourceValues = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isAliasFileKey]),
+                   resourceValues.isRegularFile == true {
+                    foundImageURLs.append(fileURL)
+                }
+            }
+            for url in foundImageURLs {
                 guard let nsImage = NSImage(contentsOfFile: url.path) else { break }
                 images.append(Image(nsImage: nsImage))
             }
-            return images
-        } catch {
-            // Can't get contents of directory
-            return []
         }
+        return images
     }
 }

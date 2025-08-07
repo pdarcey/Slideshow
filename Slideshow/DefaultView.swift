@@ -10,6 +10,9 @@ import SwiftUI
 struct DefaultView: View {
     @Binding var images: [Image]?
     @Binding var slideshowRunning: Bool
+    @State private var dragOver = false
+    @State private var heroImage: Image?
+    @SceneStorage("selectedFolder") private var selectedFolder = URL.picturesDirectory
 
     var folderText: String {
         if let images {
@@ -20,13 +23,38 @@ struct DefaultView: View {
         return "Select folder"
     }
 
+    func selectFileOrFolder() {
+        var fileSystemReader = FileSystemReader()
+        if let fileOrFolderURL = fileSystemReader.selectedFileorFolder() {
+            selectedFolder = fileOrFolderURL
+            images = fileSystemReader.getImages(at: fileOrFolderURL)
+            if let heroImageURL = fileSystemReader.selectedImageURL(),
+               let image = NSImage(contentsOf: heroImageURL) {
+                heroImage = Image(nsImage:image)
+            }
+        }
+    }
+
     var body: some View {
         VStack {
             Button(folderText) {
-                let fileSystemReader = FileSystemReader()
-                images = fileSystemReader.selectFolder()
+                selectFileOrFolder()
             }
             .padding(.bottom)
+            .onDrop(of: ["public.file-url"], isTargeted: $dragOver) { providers -> Bool in
+                providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
+                    if let data = data, let path = NSString(data: data, encoding: 4), let fileOrFolderURL = URL(string: path as String) {
+                        var fileSystemReader = FileSystemReader()
+                        selectedFolder = fileOrFolderURL
+                        images = fileSystemReader.getImages(at: fileOrFolderURL)
+                        if let heroImageURL = fileSystemReader.selectedImageURL(),
+                           let image = NSImage(contentsOf: heroImageURL) {
+                            heroImage = Image(nsImage:image)
+                        }
+                    }
+                })
+                return true
+            }
             Button("Start") {
                 slideshowRunning = true
             }

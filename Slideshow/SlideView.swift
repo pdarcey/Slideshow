@@ -86,6 +86,6 @@ struct SlideView: View {
 
 }
 
-#Preview {
-    SlideView(images: previewImages, slideshowIsRunning: .constant(true))
-}
+//#Preview {
+//    SlideView(images: previewImages, slideshowIsRunning: .constant(true))
+//}

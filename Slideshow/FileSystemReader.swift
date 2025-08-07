@@ -8,21 +8,46 @@
 import SwiftUI
 
 struct FileSystemReader {
-    let fileManager = FileManager.default
+    let fileManager: FileManager = FileManager.default
+    var selectedURL: URL? = nil
 
-    func selectFolder() -> [Image] {
+    mutating func selectedFileorFolder() -> URL? {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = true
-        panel.canChooseFiles = false
+        panel.canChooseFiles = true
         if panel.runModal() == .OK {
-            guard let selectedFolder = panel.url else { return [] }
-            return getImages(at: selectedFolder)
+            guard let selectedFileorFolder = panel.url else { return nil }
+            selectedURL = selectedFileorFolder
+            return selectedFileorFolder
         }
-        return []
+        return nil
     }
 
-    private func getImages(at selectedFolder: URL) -> [Image] {
+    func selectedImageURL() -> URL? {
+        guard let selectedURL else { return nil }
+        if selectedURL.hasDirectoryPath {
+            do {
+                let contents = try fileManager.contentsOfDirectory(at: selectedURL, includingPropertiesForKeys: [])
+                let imageURLs = contents.filter({ $0.pathExtension == "jpg" }).sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+
+                return imageURLs.first
+            } catch {
+                // Can't get contents of directory
+                return nil
+            }
+        } else {
+            return selectedURL
+        }
+    }
+
+    func getImages(at selectedFileorFolder: URL) -> [Image] {
+        let selectedFolder: URL
+        if selectedFileorFolder.hasDirectoryPath {
+            selectedFolder = selectedFileorFolder
+        } else {
+            selectedFolder = selectedFileorFolder.deletingLastPathComponent()
+        }
         do {
             var images: [Image] = []
             let contents = try fileManager.contentsOfDirectory(at: selectedFolder, includingPropertiesForKeys: [])

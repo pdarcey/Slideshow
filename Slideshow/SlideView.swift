@@ -55,6 +55,7 @@ struct SlideView: View {
                             // User has hit Esc, cancel the slideshow
                             slideshowIsRunning = false
                             currentImage = 0
+                            exitFullScreen()
                         }
                     })
                     .onKeyPress(.escape) {
@@ -62,6 +63,7 @@ struct SlideView: View {
                             // User has hit Esc, cancel the slideshow
                             slideshowIsRunning = false
                             currentImage = 0
+                            exitFullScreen()
                             return .handled
                         }
                     }
@@ -83,6 +85,7 @@ struct SlideView: View {
                                 // Last slide has been shown, cancel the slideshow
                                 slideshowIsRunning = false
                                 currentImage = 0
+                                exitFullScreen()
                             }
                             return .handled
                         }
@@ -115,6 +118,7 @@ struct SlideView: View {
                                     // Last slide has been shown, cancel the slideshow
                                     slideshowIsRunning = false
                                     currentImage = 0
+                                    exitFullScreen()
                                 }
                             }
                         }
@@ -141,6 +145,18 @@ struct SlideView: View {
                 }
             }
         })
+    }
+
+    func exitFullScreen() {
+        // Toggle off full-screen mode, if necessary
+        Task { @MainActor in
+            if let window = NSApplication.shared.windows.last {
+                if window.isZoomed {
+                    window.toggleFullScreen(nil)
+                }
+
+            }
+        }
     }
 }
 

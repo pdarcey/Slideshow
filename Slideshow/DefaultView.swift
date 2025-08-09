@@ -42,6 +42,9 @@ struct DefaultView: View {
                     .resizable()
                     .scaledToFit()
                     .padding(.bottom)
+            } else {
+               ContentUnavailableView("Choose a folder of images to display", systemImage: "photo.on.rectangle")
+                Spacer()
             }
 
             HStack {

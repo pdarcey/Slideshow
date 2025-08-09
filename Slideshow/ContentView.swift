@@ -14,11 +14,13 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             DefaultView(images: $images, slideshowRunning: $slideShowIsRunning)
-            if slideShowIsRunning {
+            if slideShowIsRunning && images != nil {
                 SlideView(images: images ?? [:], currentImage: 0, slideshowIsRunning: $slideShowIsRunning)
+                    .onAppear {
+                        Task { @MainActor in NSApplication.shared.windows.last?.toggleFullScreen(nil) }
+                    }
             }
         }
-
     }
 }
 

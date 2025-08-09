@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DefaultView: View {
-    @Binding var images: [Image]?
+    @Binding var images: [String:Image]?
     @Binding var slideshowRunning: Bool
     @State private var dragOver = false
     @State private var heroImage: Image?
@@ -17,7 +17,7 @@ struct DefaultView: View {
     var folderText: String {
         if let images {
             if images.count > 0 {
-                return "Selected \(images.count.formatted()) images"
+                return "Selected: \(selectedFolder.lastPathComponent)  (\(images.count.formatted()) images)"
             }
         }
         return "Select folder"
@@ -37,30 +37,41 @@ struct DefaultView: View {
 
     var body: some View {
         VStack {
-            Button(folderText) {
-                selectFileOrFolder()
+            if let heroImage {
+                heroImage
+                    .resizable()
+                    .scaledToFit()
+                    .padding(.bottom)
             }
-            .padding(.bottom)
-            .onDrop(of: ["public.file-url"], isTargeted: $dragOver) { providers -> Bool in
-                providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
-                    if let data = data, let path = NSString(data: data, encoding: 4), let fileOrFolderURL = URL(string: path as String) {
-                        var fileSystemReader = FileSystemReader()
-                        selectedFolder = fileOrFolderURL
-                        images = fileSystemReader.getImages(at: fileOrFolderURL)
-                        if let heroImageURL = fileSystemReader.selectedImageURL(),
-                           let image = NSImage(contentsOf: heroImageURL) {
-                            heroImage = Image(nsImage:image)
-                        }
-                    }
-                })
-                return true
-            }
-            Button("Start") {
-                slideshowRunning = true
-            }
-            .disabled(images?.count == 0)
-        }
 
+            HStack {
+                Button(folderText) {
+                    selectFileOrFolder()
+                }
+                .onDrop(of: ["public.file-url"], isTargeted: $dragOver) { providers -> Bool in
+                    providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
+                        if let data = data, let path = NSString(data: data, encoding: 4), let fileOrFolderURL = URL(string: path as String) {
+                            let fileSystemReader = FileSystemReader()
+                            selectedFolder = fileOrFolderURL
+                            images = fileSystemReader.getImages(at: fileOrFolderURL)
+                            if let heroImageURL = fileSystemReader.selectedImageURL(),
+                               let image = NSImage(contentsOf: heroImageURL) {
+                                heroImage = Image(nsImage:image)
+                            }
+                        }
+                    })
+                    return true
+                }
+
+                Button("Start") {
+                    withAnimation {
+                        slideshowRunning = true
+                    }
+                }
+                .disabled(images?.count == 0)
+            }
+        }
+        .padding()
     }
 }
 

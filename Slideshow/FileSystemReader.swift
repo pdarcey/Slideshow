@@ -52,14 +52,14 @@ struct FileSystemReader {
         }
     }
 
-    func getImages(at selectedFileorFolder: URL) -> [Image] {
+    func getImages(at selectedFileorFolder: URL) -> [String: Image] {
         let selectedFolder: URL
         if selectedFileorFolder.hasDirectoryPath {
             selectedFolder = selectedFileorFolder
         } else {
             selectedFolder = selectedFileorFolder.deletingLastPathComponent()
         }
-        var images: [Image] = []
+        var images: [String: Image] = [:]
         if let enumerator = fileManager.enumerator(at: selectedFolder, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants])  {
             var foundImageURLs: [URL] = []
 
@@ -74,7 +74,7 @@ struct FileSystemReader {
             }
             for url in foundImageURLs {
                 guard let nsImage = NSImage(contentsOfFile: url.path) else { break }
-                images.append(Image(nsImage: nsImage))
+                images[url.lastPathComponent] = Image(nsImage: nsImage)
             }
         }
         return images

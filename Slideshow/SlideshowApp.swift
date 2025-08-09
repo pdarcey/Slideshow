@@ -10,8 +10,12 @@ import SwiftUI
 @main
 struct SlideshowApp: App {
     var body: some Scene {
-        WindowGroup {
+        Window("Slideshow", id: "contents") {
             ContentView()
+        }
+
+        Settings {
+            SettingsView()
         }
     }
 }

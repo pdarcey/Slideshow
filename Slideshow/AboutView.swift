@@ -8,11 +8,27 @@
 import SwiftUI
 
 struct AboutView: View {
+    private var appVersionAndBuild: String {
+        let version = Bundle.main
+            .infoDictionary?["CFBundleShortVersionString"] as? String ?? "N/A"
+        let build = Bundle.main
+            .infoDictionary?["CFBundleVersion"] as? String ?? "N/A"
+        return "Version \(version) (\(build))"
+    }
+
+    private var copyright: String {
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: Date())
+        return "© \(year) Xerodonia Pty Ltd"
+    }
+
+    private var developerWebsite: URL {
+        URL(string: "https://xerodonia.com/")!
+    }
     var body: some View {
         HStack {
             Image("AboutIcon")
-                .resizable()
-                .frame(width: 96, height: 96)
+                .resizable().scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 .shadow(radius: 3)
 //                .overlay(
@@ -23,14 +39,13 @@ struct AboutView: View {
                 Text("Slideshow")
                     .font(.largeTitle)
                     .bold()
-
-                Text("Version 1.0.0")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 Spacer()
-                Text("© 2025 Xerodonia Pty Ltd, All rights reserved")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 2) {
+                    Text(appVersionAndBuild)
+                    Text(copyright)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             .padding(.horizontal)
         }

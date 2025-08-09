@@ -14,15 +14,6 @@ struct DefaultView: View {
     @State private var heroImage: Image?
     @SceneStorage("selectedFolder") private var selectedFolder = URL.picturesDirectory
 
-    var folderText: String {
-        if let images {
-            if images.count > 0 {
-                return "Selected: \(selectedFolder.lastPathComponent)  (\(images.count.formatted()) images)"
-            }
-        }
-        return "Select folder"
-    }
-
     func selectFileOrFolder() {
         var fileSystemReader = FileSystemReader()
         if let fileOrFolderURL = fileSystemReader.selectedFileorFolder() {
@@ -36,7 +27,10 @@ struct DefaultView: View {
     }
 
     var body: some View {
+        let check = images?.count ?? 0
         VStack {
+            Text(check > 0 ? "Selected folder: \(selectedFolder.lastPathComponent)  (\(check.formatted()) images)" : "")
+
             if let heroImage {
                 heroImage
                     .resizable()
@@ -48,7 +42,7 @@ struct DefaultView: View {
             }
 
             HStack {
-                Button(folderText) {
+                Button("Select folder") {
                     selectFileOrFolder()
                 }
                 .onDrop(of: ["public.file-url"], isTargeted: $dragOver) { providers -> Bool in

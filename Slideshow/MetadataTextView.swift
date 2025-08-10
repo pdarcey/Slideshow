@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MetadataTextView: View {
+struct OutlineText: View {
     let text: String
     let outlineWidth: CGFloat = 1.0 // Adjust for desired outline thickness
 
@@ -29,12 +29,20 @@ struct MetadataTextView: View {
             // White text on top
             Text(text).foregroundStyle(.white)
         }
-        .padding(.vertical, 2)
-        .padding(.horizontal, 8)
-        .background(
-            .thinMaterial,
-            in: Capsule()
-        )
+    }
+}
+
+struct MetadataTextView: View {
+    let text: String
+
+    var body: some View {
+        OutlineText(text: text)
+            .padding(.vertical, 2)
+            .padding(.horizontal, 8)
+            .background(
+                .thinMaterial,
+                in: Capsule()
+            )
     }
 }
 

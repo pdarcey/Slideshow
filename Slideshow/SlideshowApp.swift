@@ -29,6 +29,13 @@ struct SlideshowApp: App {
                     Text("About Slideshow")
                 }
             }
+
+                CommandGroup(replacing: .help) {
+                    Button("Slideshow Help") {
+                        NSHelpManager.shared.openHelpAnchor("index.html", inBook: "com.xerodonia.slideshow.help")
+                    }
+                    .keyboardShortcut("?", modifiers: [.command, .shift])
+                }
         }
 
         Window("About Slideshow", id: "about") {

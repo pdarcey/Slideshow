@@ -15,6 +15,8 @@ struct SlideView: View {
     @Binding var slideshowIsRunning: Bool
     @FocusState private var focussed: Bool
     @AppStorage("showMetadata") var showMetadata = true
+    @State private var scale: CGFloat = 1
+    @State private var showHelp = false
 
     // Auto Mode
     @AppStorage("autoModeInterval") var interval: Double = 3.0
@@ -44,6 +46,7 @@ struct SlideView: View {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .scaleEffect(scale)
                     .focusable()
                     .focused($focussed)
                     .transition(.opacity)
@@ -90,22 +93,34 @@ struct SlideView: View {
                             return .handled
                         }
                     })
-                    .onKeyPress(keys: ["h", "H"], action: { _ in
+                    .onKeyPress(keys: ["m", "M"], action: { _ in
                         // Show/Hide metadata (i.e. "1 of 100: <filename>")
                         withAnimation {
                             showMetadata.toggle()
                             return .handled
                         }
-                    }
-                    )
+                    })
                     .onKeyPress(keys: ["a", "A"], action: { _ in
                         // Toggle autoMode
                         withAnimation {
                             autoMode.toggle()
                             return .handled
                         }
-                    }
-                    )
+                    })
+                    .onKeyPress(keys: ["="], action: { _ in
+                        // Return scale to 100%
+                        withAnimation {
+                            scale = 1.0
+                            return .handled
+                        }
+                    })
+                    .onKeyPress(keys: ["?"], action: { _ in
+                        // Toggle Help display
+                        withAnimation {
+                            showHelp.toggle()
+                            return .handled
+                        }
+                    })
                     .onReceive(timer) { _ in
                         // Automode progress
                         if autoMode {
@@ -129,6 +144,17 @@ struct SlideView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding()
                 }
+
+                if showHelp {
+                    HelpView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+
+                ScrollZoomView { delta in
+                    scale += delta
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.clear)
             }
         }
         .onTapGesture(perform: {

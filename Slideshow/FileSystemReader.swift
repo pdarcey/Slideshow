@@ -18,6 +18,7 @@ struct FileSystemReader {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = true
         panel.canChooseFiles = true
+        panel.prompt = "Start Slideshow"
         if panel.runModal() == .OK {
             guard let selectedFileorFolder = panel.url else { return nil }
             selectedURL = selectedFileorFolder

@@ -13,16 +13,70 @@ struct DefaultView: View {
     @State private var dragOver = false
     @State private var heroImage: Image?
     @SceneStorage("selectedFolder") private var selectedFolder = URL.picturesDirectory
+    @Binding var startImageIndex: Int
 
     func selectFileOrFolder() {
-        var fileSystemReader = FileSystemReader()
-        if let fileOrFolderURL = fileSystemReader.selectedFileorFolder() {
-            selectedFolder = fileOrFolderURL
-            images = fileSystemReader.getImages(at: fileOrFolderURL)
-            if let heroImageURL = fileSystemReader.selectedImageURL(),
-               let image = NSImage(contentsOf: heroImageURL) {
-                heroImage = Image(nsImage:image)
+        // Display file selection panel
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.bmp, .jpeg, .png, .tiff, .gif, .heic]
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Start Slideshow"
+
+        if panel.runModal() == .OK, let selection = panel.url {
+            let (folderURL, selectedImage) = parseSelectedURL(selection)
+            getImagesAtURL(folderURL, selectedImage: selectedImage)
             }
+        }
+
+    func parseSelectedURL(_ url: URL) -> (folderURL: URL, selectedImage: URL?) {
+        let folderURL: URL
+        var selectedImage: URL? = nil
+        if url.hasDirectoryPath {
+            folderURL = url
+        } else {
+            folderURL = url.deletingLastPathComponent()
+            selectedImage = url
+        }
+        return (folderURL, selectedImage)
+    }
+
+    func getImagesAtURL(_ folderURL: URL, selectedImage: URL? = nil) {
+        let fileManager = FileManager.default
+
+        if let files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil) {
+            let sortedImages = files
+                .filter { ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic"].contains($0.pathExtension.lowercased()) }
+                .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            var imageDict: [String:Image] = [:]
+            for url in sortedImages {
+                guard let nsImage = NSImage(contentsOfFile: url.path) else { break }
+                imageDict[url.lastPathComponent] = Image(nsImage: nsImage)
+            }
+            // Set the variables and start the slideshow
+            startImageIndex = 0 // Default
+            if let selectedImage, let startIndex = sortedImages.firstIndex(of: selectedImage) {
+                startImageIndex = startIndex
+            }
+            images = imageDict
+            heroImage = setHeroImage(for: selectedImage)
+            slideshowRunning = true
+        }
+    }
+
+    func setHeroImage(for selectedImageURL: URL?) -> Image {
+        // First, is there a selected file, and can we make it into an image
+        if let selectedURL = selectedImageURL, let image = NSImage(contentsOf: selectedURL) {
+           return Image(nsImage:image)
+        }
+        // Second, if not, grab the first image in the `images` dictionary
+        if let firstImageURL = Array(images!.keys).sorted().first,
+           let image = images?[firstImageURL] {
+            return image
+        } else {
+            // Third, if all else fails, show a default image
+            return Image(systemName: "photo.on.rectangle")
         }
     }
 
@@ -47,14 +101,9 @@ struct DefaultView: View {
                 }
                 .onDrop(of: ["public.file-url"], isTargeted: $dragOver) { providers -> Bool in
                     providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
-                        if let data = data, let path = NSString(data: data, encoding: 4), let fileOrFolderURL = URL(string: path as String) {
-                            let fileSystemReader = FileSystemReader()
-                            selectedFolder = fileOrFolderURL
-                            images = fileSystemReader.getImages(at: fileOrFolderURL)
-                            if let heroImageURL = fileSystemReader.selectedImageURL(),
-                               let image = NSImage(contentsOf: heroImageURL) {
-                                heroImage = Image(nsImage:image)
-                            }
+                        if let data = data, let path = NSString(data: data, encoding: 4), let selection = URL(string: path as String) {
+                            let (folderURL, selectedImage) = parseSelectedURL(selection)
+                            getImagesAtURL(folderURL, selectedImage: selectedImage)
                         }
                     })
                     return true
@@ -73,5 +122,9 @@ struct DefaultView: View {
 }
 
 #Preview {
-    DefaultView(images: .constant(nil), slideshowRunning: .constant(false))
+    @Previewable @State var images: [String:Image]? = nil
+    @Previewable @State var slideshowRunning: Bool = false
+    @Previewable @State var startImageIndex: Int = 0
+
+    DefaultView(images: $images, slideshowRunning: $slideshowRunning, startImageIndex: $startImageIndex)
 }

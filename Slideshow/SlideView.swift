@@ -125,9 +125,7 @@ struct SlideView: View {
                     }
 
                 if showMetadata {
-                    Text("\(currentImage + 1) of \(images.count): \(currentImageName)")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
+                    MetadataTextView(text: "\(currentImage + 1) of \(images.count): \(currentImageName.withoutExtension())")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding()
                 }
@@ -142,6 +140,7 @@ struct SlideView: View {
                     // Last slide has been shown, cancel the slideshow
                     slideshowIsRunning = false
                     currentImage = 0
+                    exitFullScreen()
                 }
             }
         })
@@ -151,15 +150,27 @@ struct SlideView: View {
         // Toggle off full-screen mode, if necessary
         Task { @MainActor in
             if let window = NSApplication.shared.windows.last {
-                if window.isZoomed {
+                if window.styleMask.contains(.fullScreen) {
                     window.toggleFullScreen(nil)
                 }
-
             }
         }
     }
+
+
 }
 
+extension String {
+    func withoutExtension() -> String {
+        let supportedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic", ".tiff"]
+        for ext in supportedExtensions {
+            if self.lowercased().hasSuffix(ext) {
+                return self.replacingOccurrences(of: ext, with: "", options: [.caseInsensitive])
+            }
+        }
+        return self
+    }
+}
 //#Preview {
 //    SlideView(images: previewImages, slideshowIsRunning: .constant(true))
 //}

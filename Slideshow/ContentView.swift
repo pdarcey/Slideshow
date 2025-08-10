@@ -10,12 +10,13 @@ import SwiftUI
 struct ContentView: View {
     @State var slideShowIsRunning: Bool = false
     @State var images: [String: Image]? = nil
+    @State private var startImageIndex: Int = 0
 
     var body: some View {
         ZStack {
-            DefaultView(images: $images, slideshowRunning: $slideShowIsRunning)
+            DefaultView(images: $images, slideshowRunning: $slideShowIsRunning, startImageIndex: $startImageIndex)
             if slideShowIsRunning && images != nil {
-                SlideView(images: images ?? [:], currentImage: 0, slideshowIsRunning: $slideShowIsRunning)
+                SlideView(images: images ?? [:], currentImage: startImageIndex, slideshowIsRunning: $slideShowIsRunning)
                     .onAppear {
                         Task { @MainActor in NSApplication.shared.windows.last?.toggleFullScreen(nil) }
                     }

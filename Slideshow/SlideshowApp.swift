@@ -11,6 +11,12 @@ import SwiftUI
 struct SlideshowApp: App {
     @Environment(\.openWindow) private var openWindow
 
+    init() {
+        // Multiple Slideshow windows are fine; the native window-tabbing UI
+        // (merging them into tabs) doesn't suit this app.
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+
     var body: some Scene {
         WindowGroup("Slideshow", id: "contents") {
             ContentView()

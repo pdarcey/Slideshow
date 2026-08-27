@@ -17,6 +17,8 @@ struct SlideView: View {
     @AppStorage("showMetadata") var showMetadata = true
     @State private var scale: CGFloat = 1
     @State private var showHelp = false
+    @Environment(\.appearsActive) private var appearsActive
+    @State private var window: NSWindow?
 
     // Auto Mode
     @AppStorage("autoModeInterval") var interval: Double = 3.0
@@ -52,21 +54,15 @@ struct SlideView: View {
                     .transition(.opacity)
                     .onAppear {
                         focussed = true
+                        captureWindowIfNeeded()
                     }
-                    .onExitCommand(perform: {
-                        withAnimation {
-                            // User has hit Esc, cancel the slideshow
-                            slideshowIsRunning = false
-                            currentImage = 0
-                            exitFullScreen()
-                        }
-                    })
+                    .onChange(of: appearsActive) { _, _ in
+                        captureWindowIfNeeded()
+                    }
                     .onKeyPress(.escape) {
+                        // User has hit Esc, cancel the slideshow
                         withAnimation {
-                            // User has hit Esc, cancel the slideshow
-                            slideshowIsRunning = false
-                            currentImage = 0
-                            exitFullScreen()
+                            endSlideshow()
                             return .handled
                         }
                     }
@@ -86,9 +82,7 @@ struct SlideView: View {
                                 currentImage += 1
                             } else {
                                 // Last slide has been shown, cancel the slideshow
-                                slideshowIsRunning = false
-                                currentImage = 0
-                                exitFullScreen()
+                                endSlideshow()
                             }
                             return .handled
                         }
@@ -131,9 +125,7 @@ struct SlideView: View {
                                     currentImage += 1
                                 } else {
                                     // Last slide has been shown, cancel the slideshow
-                                    slideshowIsRunning = false
-                                    currentImage = 0
-                                    exitFullScreen()
+                                    endSlideshow()
                                 }
                             }
                         }
@@ -164,26 +156,41 @@ struct SlideView: View {
                     currentImage += 1
                 } else {
                     // Last slide has been shown, cancel the slideshow
-                    slideshowIsRunning = false
-                    currentImage = 0
-                    exitFullScreen()
+                    endSlideshow()
                 }
             }
         })
     }
 
-    func exitFullScreen() {
-        // Toggle off full-screen mode, if necessary
-        Task { @MainActor in
-            if let window = NSApplication.shared.windows.last {
-                if window.styleMask.contains(.fullScreen) {
-                    window.toggleFullScreen(nil)
-                }
-            }
+    /// Stops the slideshow and exits full screen. Centralizes the sequence
+    /// every "reached the last slide" / "user cancelled" path needs, so it's
+    /// defined once instead of repeated at each call site.
+    private func endSlideshow() {
+        slideshowIsRunning = false
+        currentImage = 0
+        exitFullScreen()
+    }
+
+    /// Captures this view's own hosting window the first time it's known to
+    /// be active, then enters full screen. Using `appearsActive` rather than
+    /// `NSApplication.shared.windows.last`/`.keyWindow` means this reliably
+    /// targets *this* SlideView's window even when other Slideshow windows
+    /// are open at the same time.
+    private func captureWindowIfNeeded() {
+        guard appearsActive, window == nil else { return }
+        window = NSApplication.shared.keyWindow
+        if let window, !window.styleMask.contains(.fullScreen) {
+            window.toggleFullScreen(nil)
         }
     }
 
-
+    private func exitFullScreen() {
+        // Toggle off full-screen mode, if necessary
+        guard let window, window.styleMask.contains(.fullScreen) else { return }
+        Task { @MainActor in
+            window.toggleFullScreen(nil)
+        }
+    }
 }
 
 extension String {

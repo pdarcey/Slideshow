@@ -17,9 +17,6 @@ struct ContentView: View {
             DefaultView(images: $images, slideshowRunning: $slideShowIsRunning, startImageIndex: $startImageIndex)
             if slideShowIsRunning && images != nil {
                 SlideView(images: images ?? [:], currentImage: startImageIndex, slideshowIsRunning: $slideShowIsRunning)
-                    .onAppear {
-                        Task { @MainActor in NSApplication.shared.windows.last?.toggleFullScreen(nil) }
-                    }
             }
         }
     }

@@ -7,10 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Slideshow is a macOS app that displays a folder of photos/images full-screen, one at a time, with
 user-configurable auto-advance timing, manual/auto progress, zoom, and metadata overlay.
 
+It prioritises simplicity over "full-featuredness". It is there to display images as a slideshow; that's all!
+
 - Bundle ID: `com.xerodonia.Slideshow`
-- Deployment target: macOS 15 (Xcode project setting; `Readme.md` states macOS 26/Tahoe as the
-  intended requirement — treat macOS 26 as the design target per global instructions, but be aware
-  the project file has not been bumped yet)
+- Deployment target: macOS 26/Tahoe
 - Sandboxed app; entitlements only grant `com.apple.security.files.user-selected.read-only`
 
 ## Commands

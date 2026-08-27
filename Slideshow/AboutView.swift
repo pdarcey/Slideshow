@@ -44,10 +44,12 @@ struct AboutView: View {
                     Text(appVersionAndBuild)
                     Text(copyright)
                     Link("xerodonia.com", destination: developerWebsite)
+                        .foregroundStyle(Color(nsColor: .linkColor))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal)
         }
         .frame(height: 104)

@@ -79,6 +79,11 @@ extension ContentView {
             panel.allowedContentTypes = [.bmp, .jpeg, .png, .tiff, .gif, .heic]
             panel.allowsMultipleSelection = false
             panel.prompt = "Start Slideshow"
+            // Picking a single image (rather than its folder) works fine —
+            // parseSelectedURL/getImagesAtURL already resolve it to that
+            // image's position within its folder — but nothing else here
+            // hints that's an option, so spell it out.
+            panel.message = "Choose a folder of images, or a single image to start on."
 
             if panel.runModal() == .OK, let selection = panel.url {
                 let (folderURL, selectedImage) = parseSelectedURL(selection)

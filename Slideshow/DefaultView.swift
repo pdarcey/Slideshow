@@ -26,22 +26,22 @@ struct DefaultView: View {
                     ContentUnavailableView(
                         "Can't Access That Folder",
                         systemImage: "lock.fill",
-                        description: Text("macOS only grants Slideshow access to a single file on its own, not the folder it's in. Click **Select folder** below, or drag onto this window, and choose the folder instead.")
+                        description: Text("macOS only grants Slideshow access to a single file on its own, not the folder it's in. Click **Select Folder or Image…** below, or drag onto this window, and choose the folder instead.")
                     )
                 case .noSupportedImages:
                     ContentUnavailableView(
                         "No Images Found",
                         image: "photo.stack.slash",
-                        description: Text("That folder doesn't contain any supported images. Click **Select folder** below to try a different one.")
+                        description: Text("That folder doesn't contain any supported images. Click **Select Folder or Image…** below to try a different one.")
                     )
                 case .previousFolderUnavailable:
                     ContentUnavailableView(
                         "Folder No Longer Available",
                         systemImage: "folder.badge.questionmark",
-                        description: Text("The folder this window had open isn't available any more. It may have been moved, renamed, or deleted. Click **Select folder** below to choose another.")
+                        description: Text("The folder this window had open isn't available any more. It may have been moved, renamed, or deleted. Click **Select Folder or Image…** below to choose another.")
                     )
                 case .notYetAttempted:
-                    ContentUnavailableView("Choose a folder of images to display", systemImage: "photo.on.rectangle")
+                    ContentUnavailableView("Choose a folder of images, or a single image, to display", systemImage: "photo.on.rectangle")
                 }
                 Spacer()
             } else {
@@ -52,7 +52,7 @@ struct DefaultView: View {
             }
 
             HStack {
-                Button("Select folder") {
+                Button("Select Folder or Image…") {
                     viewModel.selectFileOrFolder()
                 }
 
@@ -69,8 +69,9 @@ struct DefaultView: View {
         }
         .padding()
         // The whole picker screen is the drop target now, not just the
-        // "Select folder" button — and dragOver (already tracked, but
-        // previously never actually shown) now drives a visible highlight.
+        // "Select Folder or Image…" button — and dragOver (already
+        // tracked, but previously never actually shown) now drives a
+        // visible highlight.
         .dropDestination(for: URL.self) { urls, _ in
             guard let selection = urls.first else { return false }
             Task { @MainActor in

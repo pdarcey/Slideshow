@@ -16,7 +16,7 @@ struct SettingsView: View {
         VStack(alignment: .leading) {
             Toggle("Auto Mode", isOn: $autoMode)
             Slider(value: $interval, in: 0...5, step: 0.1) {
-                Text("Advance slides every: \(interval, specifier: "%.1f") seconds")
+                Text("Advance slides every: \(interval.formatted(.number.precision(.fractionLength(1)))) seconds")
                     .monospacedDigit()
             }
             Toggle("Show Metadata", isOn: $showMetadata)

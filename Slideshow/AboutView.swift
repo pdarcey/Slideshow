@@ -43,6 +43,7 @@ struct AboutView: View {
                 VStack(spacing: 2) {
                     Text(appVersionAndBuild)
                     Text(copyright)
+                    Link("xerodonia.com", destination: developerWebsite)
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)

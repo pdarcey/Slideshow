@@ -114,7 +114,7 @@ struct DefaultView: View {
                         slideshowRunning = true
                     }
                 }
-                .disabled(images?.count == 0)
+                .disabled((images?.count ?? 0) == 0)
             }
         }
         .padding()

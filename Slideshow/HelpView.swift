@@ -18,7 +18,6 @@ struct HelpView: View {
                 KeyDescription(keys: "Esc", description: "End slideshow")
                 KeyDescription(keys: "Right Arrow", "Space", "Return", description: "Show next slide")
                 KeyDescription(keys: "Left Arrow", description: "Show previous slide")
-                KeyDescription(keys: "H", description: "End slideshow")
                 KeyDescription(keys: "M", description: "Toggle metadata")
                 KeyDescription(keys: "A", description: "Toggle AutoMode")
                 KeyDescription(keys: "=", description: "Set scale to 100%")

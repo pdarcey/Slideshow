@@ -31,7 +31,7 @@ struct DefaultView: View {
                 case .noSupportedImages:
                     ContentUnavailableView(
                         "No Images Found",
-                        systemImage: "photo.on.rectangle",
+                        image: "photo.stack.slash",
                         description: Text("That folder doesn't contain any supported images. Click **Select folder** below to try a different one.")
                     )
                 case .notYetAttempted:

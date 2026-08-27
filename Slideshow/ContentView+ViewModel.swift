@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+import OSLog
+
+private let logger = Logger(subsystem: "com.xerodonia.Slideshow", category: "ContentView.ViewModel")
 
 extension ContentView {
     /// Owns loading and selection state for the picker screen: which folder
@@ -22,10 +25,25 @@ extension ContentView {
             case notYetAttempted
             case accessDenied
             case noSupportedImages
+            case previousFolderUnavailable
         }
 
         private(set) var images: [Slide] = []
         private(set) var emptyReason: EmptyReason = .notYetAttempted
+
+        /// A security-scoped bookmark for the currently-loaded folder, so
+        /// this window's state can be persisted and restored across a
+        /// relaunch. Refreshed on every successful load; nil whenever
+        /// `images` is empty.
+        private(set) var bookmarkData: Data?
+
+        /// Set once by `ContentView` after this view model is created, so a
+        /// successful load can notify `AppCoordinator` to persist the
+        /// current set of open windows. A plain closure rather than a
+        /// direct `AppCoordinator` reference keeps this class free of any
+        /// app-lifecycle coupling, so it stays fully testable in isolation
+        /// (tests never set this, so it's simply never called).
+        var onStateChanged: (() -> Void)?
 
         private(set) var index: Int = 0 {
             didSet {
@@ -106,7 +124,9 @@ extension ContentView {
             guard let files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil) else {
                 images = []
                 index = 0
+                bookmarkData = nil
                 emptyReason = .accessDenied
+                onStateChanged?()
                 return
             }
 
@@ -123,12 +143,69 @@ extension ContentView {
             images = loadedSlides
             if loadedSlides.isEmpty {
                 emptyReason = .noSupportedImages
+                bookmarkData = nil
+            } else {
+                // Refreshed on every successful load, regardless of whether
+                // folderURL came from a fresh Powerbox grant or a resolved
+                // bookmark (resume(from:)) — this is what keeps a resumed
+                // window's stored bookmark from ever going stale.
+                bookmarkData = try? folderURL.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
             }
             if let selectedImage, let startIndex = sortedImages.firstIndex(of: selectedImage) {
                 index = startIndex
             } else {
                 index = 0
             }
+            onStateChanged?()
+        }
+
+        /// This window's current state for persistence, or nil if there's
+        /// nothing worth restoring (no folder loaded).
+        func currentWindowState() -> WindowState? {
+            guard !images.isEmpty, let bookmarkData else { return nil }
+            return WindowState(bookmarkData: bookmarkData, selectedImageName: images[index].imageName)
+        }
+
+        /// Restores a previously-persisted folder + selected image, resolving
+        /// its security-scoped bookmark. Access is only needed for the
+        /// duration of this call — `getImagesAtURL` loads every image
+        /// eagerly into memory before returning — so it's started and
+        /// immediately paired with a `defer`-based stop, matching Apple's
+        /// own sample pattern, rather than tracked as persistent state.
+        func resume(from state: WindowState) {
+            var isStale = false
+            var resolveError: Error?
+            let resolvedURL: URL?
+            do {
+                resolvedURL = try URL(resolvingBookmarkData: state.bookmarkData, options: [.withSecurityScope], relativeTo: nil, bookmarkDataIsStale: &isStale)
+            } catch {
+                resolvedURL = nil
+                resolveError = error
+            }
+            guard let url = resolvedURL else {
+                logger.error("resume(from:) failed to resolve bookmark: \(resolveError.debugDescription, privacy: .public)")
+                images = []
+                index = 0
+                bookmarkData = nil
+                emptyReason = .previousFolderUnavailable
+                onStateChanged?()
+                return
+            }
+            guard url.startAccessingSecurityScopedResource() else {
+                logger.error("resume(from:) resolved \(url.path, privacy: .public) but startAccessingSecurityScopedResource() returned false")
+                images = []
+                index = 0
+                bookmarkData = nil
+                emptyReason = .previousFolderUnavailable
+                onStateChanged?()
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            logger.info("resume(from:) resolved \(url.path, privacy: .public), isStale=\(isStale), selectedImageName=\(state.selectedImageName ?? "nil", privacy: .public)")
+
+            let selectedImage = state.selectedImageName.map { url.appending(path: $0) }
+            getImagesAtURL(url, selectedImage: selectedImage)
+            logger.info("resume(from:) finished with \(self.images.count) images, emptyReason=\(String(describing: self.emptyReason), privacy: .public)")
         }
     }
 }

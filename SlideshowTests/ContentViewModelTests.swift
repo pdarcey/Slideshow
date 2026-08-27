@@ -175,4 +175,55 @@ final class ContentViewModelTests {
         #expect(viewModel.images.isEmpty)
         #expect(viewModel.emptyReason == .notYetAttempted)
     }
+
+    // MARK: - currentWindowState / resume(from:)
+
+    @Test func currentWindowStateIsNilBeforeAnySuccessfulLoad() {
+        #expect(viewModel.currentWindowState() == nil)
+    }
+
+    @Test func successfulLoadProducesAWindowStateWithTheSelectedImageName() throws {
+        try writeTestImage(named: "a.png")
+        try writeTestImage(named: "b.png")
+
+        viewModel.getImagesAtURL(tempDirectory, selectedImage: tempDirectory.appending(path: "b.png"))
+
+        let state = try #require(viewModel.currentWindowState())
+        #expect(state.selectedImageName == "b.png")
+    }
+
+    @Test func loadingAnEmptyFolderLeavesWindowStateNil() {
+        viewModel.getImagesAtURL(tempDirectory)
+        #expect(viewModel.currentWindowState() == nil)
+    }
+
+    @Test func resumeFromAValidBookmarkReloadsTheSameFolderAndSelection() throws {
+        try writeTestImage(named: "a.png")
+        try writeTestImage(named: "b.png")
+        try writeTestImage(named: "c.png")
+        viewModel.getImagesAtURL(tempDirectory, selectedImage: tempDirectory.appending(path: "b.png"))
+        let state = try #require(viewModel.currentWindowState())
+
+        let resumed = ContentView.ViewModel()
+        resumed.resume(from: state)
+
+        #expect(resumed.images.map(\.imageName) == ["a.png", "b.png", "c.png"])
+        #expect(resumed.index == 1)
+        #expect(resumed.emptyReason == .notYetAttempted)
+    }
+
+    @Test func resumeFromABookmarkForADeletedFolderSetsPreviousFolderUnavailable() throws {
+        let vanishingDirectory = tempDirectory.appending(path: "vanishing", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: vanishingDirectory, withIntermediateDirectories: true)
+        viewModel.getImagesAtURL(vanishingDirectory)
+        let bookmarkData = try vanishingDirectory.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+        let state = WindowState(bookmarkData: bookmarkData, selectedImageName: nil)
+        try FileManager.default.removeItem(at: vanishingDirectory)
+
+        let resumed = ContentView.ViewModel()
+        resumed.resume(from: state)
+
+        #expect(resumed.images.isEmpty)
+        #expect(resumed.emptyReason == .previousFolderUnavailable)
+    }
 }

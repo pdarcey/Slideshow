@@ -34,6 +34,12 @@ struct DefaultView: View {
                         image: "photo.stack.slash",
                         description: Text("That folder doesn't contain any supported images. Click **Select folder** below to try a different one.")
                     )
+                case .previousFolderUnavailable:
+                    ContentUnavailableView(
+                        "Folder No Longer Available",
+                        systemImage: "folder.badge.questionmark",
+                        description: Text("The folder this window had open isn't available any more. It may have been moved, renamed, or deleted. Click **Select folder** below to choose another.")
+                    )
                 case .notYetAttempted:
                     ContentUnavailableView("Choose a folder of images to display", systemImage: "photo.on.rectangle")
                 }

@@ -8,15 +8,30 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var slideShowIsRunning: Bool = false
-    @State var images: [String: Image]? = nil
-    @State private var startImageIndex: Int = 0
+    @State private var viewModel = ContentView.ViewModel()
+    @State private var slideShowIsRunning = false
+    @State private var startIndex = 0
 
     var body: some View {
         ZStack {
-            DefaultView(images: $images, slideshowRunning: $slideShowIsRunning, startImageIndex: $startImageIndex)
-            if slideShowIsRunning && images != nil {
-                SlideView(images: images ?? [:], currentImage: startImageIndex, slideshowIsRunning: $slideShowIsRunning)
+            if slideShowIsRunning {
+                SlideView(slides: viewModel.images, currentImage: startIndex, slideshowIsRunning: $slideShowIsRunning)
+            } else {
+                DefaultView(
+                    viewModel: viewModel,
+                    onStartAtCurrent: {
+                        startIndex = viewModel.index
+                        withAnimation {
+                            slideShowIsRunning = true
+                        }
+                    },
+                    onRestartFromBeginning: {
+                        startIndex = 0
+                        withAnimation {
+                            slideShowIsRunning = true
+                        }
+                    }
+                )
             }
         }
     }

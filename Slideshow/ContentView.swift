@@ -22,21 +22,17 @@ struct ContentView: View {
             } else {
                 DefaultView(
                     viewModel: viewModel,
-                    onStartAtCurrent: {
-                        startIndex = viewModel.index
-                        withAnimation {
-                            slideShowIsRunning = true
-                        }
-                    },
-                    onRestartFromBeginning: {
-                        startIndex = 0
-                        withAnimation {
-                            slideShowIsRunning = true
-                        }
-                    }
+                    onStartAtCurrent: startAtCurrent,
+                    onRestartFromBeginning: restartFromBeginning
                 )
             }
         }
+        .focusedSceneValue(\.slideshowWindow, FocusedSlideshowWindow(
+            viewModel: viewModel,
+            isSlideshowRunning: slideShowIsRunning,
+            startAtCurrent: startAtCurrent,
+            restartFromBeginning: restartFromBeginning
+        ))
         .onAppear {
             // Order matters: bootstrap/pending-consumption run before
             // onStateChanged is wired up and before captureWindowIfNeeded
@@ -74,6 +70,26 @@ struct ContentView: View {
             if !viewModel.images.isEmpty {
                 AppCoordinator.shared.closeEmptyWindows(excluding: viewModel)
             }
+        }
+    }
+
+    /// Starts the slideshow at whatever image is currently selected on the
+    /// picker screen. Shared by the "Start" button and the "Continue" menu
+    /// command/shortcut, which are the same action.
+    private func startAtCurrent() {
+        startIndex = viewModel.index
+        withAnimation {
+            slideShowIsRunning = true
+        }
+    }
+
+    /// Starts the slideshow from the first image, regardless of what's
+    /// currently selected. Shared by the "Re-start from Beginning" button
+    /// and its matching menu command/shortcut.
+    private func restartFromBeginning() {
+        startIndex = 0
+        withAnimation {
+            slideShowIsRunning = true
         }
     }
 

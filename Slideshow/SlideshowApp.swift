@@ -11,6 +11,7 @@ import SwiftUI
 struct SlideshowApp: App {
     @Environment(\.openWindow) private var openWindow
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @FocusedValue(\.slideshowWindow) private var slideshowWindow
 
     init() {
         // Multiple Slideshow windows are fine; the native window-tabbing UI
@@ -43,6 +44,27 @@ struct SlideshowApp: App {
                     }
                     .keyboardShortcut("?", modifiers: [.command, .shift])
                 }
+
+            CommandGroup(after: .newItem) {
+                Button("Open…") {
+                    slideshowWindow?.viewModel.selectFileOrFolder()
+                }
+                .keyboardShortcut("o", modifiers: .command)
+            }
+
+            CommandMenu("Slideshow") {
+                Button("Continue") {
+                    slideshowWindow?.startAtCurrent()
+                }
+                .keyboardShortcut("r", modifiers: .command)
+                .disabled(slideshowWindow?.canStartSlideshow != true)
+
+                Button("Re-start from Beginning") {
+                    slideshowWindow?.restartFromBeginning()
+                }
+                .keyboardShortcut(.return, modifiers: .command)
+                .disabled(slideshowWindow?.canStartSlideshow != true)
+            }
         }
 
         Window("Slideshow Help", id: "help") {

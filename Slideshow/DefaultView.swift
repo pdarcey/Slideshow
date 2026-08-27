@@ -21,7 +21,22 @@ struct DefaultView: View {
             Text(check > 0 ? "Selected folder: \(selectedFolder.lastPathComponent)  (\(check.formatted()) images)" : "")
 
             if viewModel.images.isEmpty {
-                ContentUnavailableView("Choose a folder of images to display", systemImage: "photo.on.rectangle")
+                switch viewModel.emptyReason {
+                case .accessDenied:
+                    ContentUnavailableView(
+                        "Can't Access That Folder",
+                        systemImage: "lock.fill",
+                        description: Text("macOS only grants Slideshow access to a single file on its own, not the folder it's in. Click **Select folder** below, or drag onto this window, and choose the folder instead.")
+                    )
+                case .noSupportedImages:
+                    ContentUnavailableView(
+                        "No Images Found",
+                        systemImage: "photo.on.rectangle",
+                        description: Text("That folder doesn't contain any supported images. Click **Select folder** below to try a different one.")
+                    )
+                case .notYetAttempted:
+                    ContentUnavailableView("Choose a folder of images to display", systemImage: "photo.on.rectangle")
+                }
                 Spacer()
             } else {
                 viewModel.selectedImage

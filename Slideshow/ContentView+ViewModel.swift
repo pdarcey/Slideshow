@@ -15,7 +15,17 @@ extension ContentView {
     @Observable
     @MainActor
     final class ViewModel {
+        /// Why `images` is currently empty, so `DefaultView` can tell the
+        /// user what actually happened instead of always showing the same
+        /// generic "nothing chosen yet" prompt.
+        enum EmptyReason: Equatable {
+            case notYetAttempted
+            case accessDenied
+            case noSupportedImages
+        }
+
         private(set) var images: [Slide] = []
+        private(set) var emptyReason: EmptyReason = .notYetAttempted
 
         private(set) var index: Int = 0 {
             didSet {
@@ -75,10 +85,28 @@ extension ContentView {
         /// Loads every supported image directly inside `folderURL`, sorted
         /// alphabetically, and selects `selectedImage`'s position within
         /// that sorted list if one was given (otherwise the first slide).
+        ///
+        /// The app is sandboxed with only user-selected read access. Picking
+        /// or dropping a *folder* (via `selectFileOrFolder()`, in-app
+        /// drag-and-drop, or dropping a folder on the Dock icon) grants
+        /// access to its whole tree, but picking or dropping a single
+        /// *file* only grants access to that one file — enumerating its
+        /// *parent* folder fails unless broader access was already
+        /// separately granted earlier in this launch. This is a hard macOS
+        /// sandbox restriction, not something worth working around (Finder's
+        /// "Open With"/double-click hand the app exactly one file with no
+        /// way to ask for its folder, which is why Slideshow no longer
+        /// registers as a handler for individual image files — only for
+        /// folders). Rather than showing a silent, confusing one-file
+        /// "slideshow" when a lone file does still reach here, surface it
+        /// via `emptyReason` so the picker screen can explain what happened.
         func getImagesAtURL(_ folderURL: URL, selectedImage: URL? = nil) {
             let fileManager = FileManager.default
 
             guard let files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil) else {
+                images = []
+                index = 0
+                emptyReason = .accessDenied
                 return
             }
 
@@ -93,6 +121,9 @@ extension ContentView {
             }
 
             images = loadedSlides
+            if loadedSlides.isEmpty {
+                emptyReason = .noSupportedImages
+            }
             if let selectedImage, let startIndex = sortedImages.firstIndex(of: selectedImage) {
                 index = startIndex
             } else {

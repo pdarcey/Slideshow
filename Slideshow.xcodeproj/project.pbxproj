@@ -20,6 +20,8 @@
 		C9697E49303FFCA90025F8F3 /* Slide.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E48303FFCA90025F8F3 /* Slide.swift */; };
 		C9697E4B303FFCB80025F8F3 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */; };
 		C9697E4D303FFD8D0025F8F3 /* ContentViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */; };
+		C9697E5030400CB90025F8F3 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4F30400CB90025F8F3 /* AppCoordinator.swift */; };
+		C9697E5230400CC00025F8F3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E5130400CC00025F8F3 /* AppDelegate.swift */; };
 		C9815D602E4751CD00F9351E /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9815D5F2E4751CD00F9351E /* Settings.swift */; };
 		C9815D622E4755F900F9351E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9815D612E4755F900F9351E /* AboutView.swift */; };
 		C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */; };
@@ -62,6 +64,9 @@
 		C9697E48303FFCA90025F8F3 /* Slide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slide.swift; sourceTree = "<group>"; };
 		C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel.swift"; sourceTree = "<group>"; };
 		C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModelTests.swift; sourceTree = "<group>"; };
+		C9697E4E30400CAB0025F8F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C9697E4F30400CB90025F8F3 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		C9697E5130400CC00025F8F3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C9815D5F2E4751CD00F9351E /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		C9815D612E4755F900F9351E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataTextView.swift; sourceTree = "<group>"; };
@@ -117,6 +122,7 @@
 		C90BA3A32A97841900A006DC /* Slideshow */ = {
 			isa = PBXGroup;
 			children = (
+				C9697E4E30400CAB0025F8F3 /* Info.plist */,
 				C90BA3A42A97841900A006DC /* SlideshowApp.swift */,
 				C9815D612E4755F900F9351E /* AboutView.swift */,
 				C9815D5F2E4751CD00F9351E /* Settings.swift */,
@@ -131,6 +137,8 @@
 				C90BA3AA2A97841B00A006DC /* Preview Content */,
 				C9697E48303FFCA90025F8F3 /* Slide.swift */,
 				C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */,
+				C9697E4F30400CB90025F8F3 /* AppCoordinator.swift */,
+				C9697E5130400CC00025F8F3 /* AppDelegate.swift */,
 			);
 			path = Slideshow;
 			sourceTree = "<group>";
@@ -294,7 +302,9 @@
 			files = (
 				C9815D622E4755F900F9351E /* AboutView.swift in Sources */,
 				C9B0EC2D2E48B353006081A4 /* HelpView.swift in Sources */,
+				C9697E5030400CB90025F8F3 /* AppCoordinator.swift in Sources */,
 				C90BA3A72A97841900A006DC /* ContentView.swift in Sources */,
+				C9697E5230400CC00025F8F3 /* AppDelegate.swift in Sources */,
 				C9B0EC2B2E48B002006081A4 /* ScrollZoomView.swift in Sources */,
 				C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */,
 				C90BA3A52A97841900A006DC /* SlideshowApp.swift in Sources */,
@@ -465,10 +475,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Slideshow/Slideshow.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Slideshow/Preview Content\"";
 				DEVELOPMENT_TEAM = J6B6PF7Z9K;
 				ENABLE_APP_SANDBOX = YES;
@@ -486,8 +496,11 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Slideshow/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Slideshow uses Apple Events to receive a folder of images dropped on its Dock icon or opened from Finder.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -508,13 +521,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Slideshow/Slideshow.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Slideshow/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = J6B6PF7Z9K;
+				DEVELOPMENT_TEAM = J6B6PF7Z9K;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readonly;
 				ENABLE_FILE_ACCESS_PICTURE_FOLDER = readonly;
@@ -530,8 +543,11 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Slideshow/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Slideshow uses Apple Events to receive a folder of images dropped on its Dock icon or opened from Finder.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

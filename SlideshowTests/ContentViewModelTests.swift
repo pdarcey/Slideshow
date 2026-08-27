@@ -132,4 +132,47 @@ final class ContentViewModelTests {
         #expect(viewModel.images.isEmpty)
         #expect(viewModel.index == 0)
     }
+
+    @Test func unreadableFolderSetsAccessDeniedAndProducesNoSlides() throws {
+        // Simulates the sandboxed case where Finder hands the app a file
+        // (e.g. via Open With) without access to its containing folder:
+        // contentsOfDirectory fails. Rather than a silent, confusing
+        // one-file "slideshow," this should be surfaced as an explicit
+        // failure the picker screen can explain to the user.
+        try writeTestImage(named: "photo.png")
+        let selected = tempDirectory.appending(path: "photo.png")
+        let unreadableFolder = tempDirectory.appending(path: "does-not-exist")
+
+        viewModel.getImagesAtURL(unreadableFolder, selectedImage: selected)
+
+        #expect(viewModel.images.isEmpty)
+        #expect(viewModel.index == 0)
+        #expect(viewModel.emptyReason == .accessDenied)
+    }
+
+    @Test func successfulLoadClearsAPreviousAccessDeniedState() throws {
+        // emptyReason shouldn't stick at .accessDenied once a later load
+        // actually succeeds.
+        viewModel.getImagesAtURL(tempDirectory.appending(path: "does-not-exist"))
+        #expect(viewModel.emptyReason == .accessDenied)
+
+        try writeTestImage(named: "photo.png")
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(viewModel.images.map(\.imageName) == ["photo.png"])
+    }
+
+    @Test func readableFolderWithNoSupportedImagesSetsNoSupportedImagesReason() throws {
+        try "not an image".write(to: tempDirectory.appending(path: "notes.txt"), atomically: true, encoding: .utf8)
+
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(viewModel.images.isEmpty)
+        #expect(viewModel.emptyReason == .noSupportedImages)
+    }
+
+    @Test func freshViewModelStartsWithNotYetAttempted() {
+        #expect(viewModel.images.isEmpty)
+        #expect(viewModel.emptyReason == .notYetAttempted)
+    }
 }

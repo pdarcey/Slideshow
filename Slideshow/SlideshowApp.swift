@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct SlideshowApp: App {
     @Environment(\.openWindow) private var openWindow
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     init() {
         // Multiple Slideshow windows are fine; the native window-tabbing UI

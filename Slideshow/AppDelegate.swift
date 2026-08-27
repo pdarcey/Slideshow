@@ -7,16 +7,15 @@
 
 import AppKit
 
-/// Receives Finder/Dock file-open events (double-click, "Open With",
-/// dragging onto the Dock icon) and hands them to `AppCoordinator`, which
-/// decides whether to reuse an existing empty window or open a new one.
+/// Note: `application(_:open:)` deliberately isn't implemented here.
+/// Confirmed via testing (no `AppCoordinator` activity logged around a
+/// Finder/Dock open) that SwiftUI's `WindowGroup` + `CFBundleDocumentTypes`
+/// handles Finder/Dock file-open events itself — it creates and shows a new
+/// window before this delegate ever gets a chance to intercept, delivering
+/// the URL via `ContentView`'s `.onOpenURL` instead. See
+/// `AppCoordinator.closeEmptyWindows(excluding:)` for how that path avoids
+/// leaving a redundant empty window behind.
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    func application(_ application: NSApplication, open urls: [URL]) {
-        for url in urls {
-            AppCoordinator.shared.open(url)
-        }
-    }
-
     /// Fires before any window starts tearing down for quit, so
     /// `AppCoordinator` can tell a genuine user-initiated window close
     /// (which should shrink the persisted restore list) apart from windows

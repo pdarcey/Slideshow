@@ -17,19 +17,10 @@ private struct RegisteredWindow {
     weak var window: NSWindow?
 }
 
-/// What a freshly-appeared `ContentView` should load, handed off by
-/// whichever mechanism decided a new window was needed: a Finder/Dock file
-/// open, or launch-time restoration of a previously-open window.
-enum PendingOpen {
-    case url(URL)
-    case restoredState(WindowState)
-}
-
-/// Bridges Finder/Dock file-open events (delivered to `AppDelegate`, which
-/// isn't a View and so has no `@Environment`) into SwiftUI's window-opening
-/// machinery, decides whether to reuse an already-open empty picker window
-/// or open a new one, and drives explicit multi-window restoration at
-/// launch.
+/// Bridges launch-time restoration (see `bootstrapLaunchIfNeeded`) into
+/// SwiftUI's window-opening machinery, and cleans up a redundant empty
+/// window left behind after a Finder/Dock open lands in a fresh one (see
+/// `closeEmptyWindows(excluding:)`).
 ///
 /// Restoration is deliberately explicit (persisted to `UserDefaults` via
 /// `WindowStateStore`, replayed by hand here) rather than relying on
@@ -52,10 +43,10 @@ final class AppCoordinator {
     private var registeredWindows: [RegisteredWindow] = []
     var openWindowAction: OpenWindowAction?
 
-    /// What a newly-appeared window should load, one entry consumed per
-    /// window. Populated either by `open(_:)` (Finder/Dock) or
-    /// `bootstrapLaunchIfNeeded` (launch-time restore of a 2nd+ window).
-    private var pendingOpens: [PendingOpen] = []
+    /// What a newly-appeared window should restore, one entry consumed per
+    /// window, populated by `bootstrapLaunchIfNeeded` for each window beyond
+    /// the first at launch.
+    private var pendingOpens: [WindowState] = []
 
     private var hasBootstrappedLaunch = false
 
@@ -79,14 +70,14 @@ final class AppCoordinator {
         windowStateDidChange()
     }
 
-    /// Pops the next thing a freshly-appeared window should load, if any.
-    func consumePendingOpen() -> PendingOpen? {
+    /// Pops the next state a freshly-appeared window should restore, if any.
+    func consumePendingOpen() -> WindowState? {
         guard !pendingOpens.isEmpty else {
             logger.info("consumePendingOpen: queue empty")
             return nil
         }
         let popped = pendingOpens.removeFirst()
-        logger.info("consumePendingOpen: popped \(String(describing: popped), privacy: .public), \(self.pendingOpens.count) left queued")
+        logger.info("consumePendingOpen: popped a restore, \(self.pendingOpens.count) left queued")
         return popped
     }
 
@@ -115,7 +106,7 @@ final class AppCoordinator {
 
         viewModel.resume(from: first)
         for state in states.dropFirst() {
-            pendingOpens.append(.restoredState(state))
+            pendingOpens.append(state)
             logger.info("bootstrapLaunchIfNeeded: queued a restore and opening a new window for it")
             openWindowAction?(id: "contents")
         }
@@ -133,22 +124,24 @@ final class AppCoordinator {
         WindowStateStore.save(states)
     }
 
-    /// Routes a Finder/Dock-opened folder into an existing empty picker
-    /// window if one exists, or opens a new window for it otherwise.
+    /// Closes any other registered window that's still empty, once
+    /// `viewModel` has just successfully loaded a folder.
     ///
-    /// Raising the specific empty window (rather than just activating the
-    /// app) is a follow-up polish item — see the "reuse an existing empty
-    /// window" Clarity issue.
-    func open(_ url: URL) {
+    /// SwiftUI always creates a brand-new window for a Finder/Dock open
+    /// (there's no hook that fires before it's already shown — see the note
+    /// on `AppDelegate`), so this can't *prevent* that window from
+    /// appearing. Instead it cleans up the other side of the same problem:
+    /// a pre-existing empty window left stranded once the new one has
+    /// content. This closes the stale window rather than the new one, so
+    /// nothing the user is actually looking at flashes in and out.
+    func closeEmptyWindows(excluding viewModel: ContentView.ViewModel) {
         registeredWindows.removeAll { $0.viewModel == nil }
-
-        if let existing = registeredWindows.first(where: { $0.viewModel?.images.isEmpty == true })?.viewModel {
-            let (folderURL, selectedImage) = existing.parseSelectedURL(url)
-            existing.getImagesAtURL(folderURL, selectedImage: selectedImage)
-            NSApp.activate(ignoringOtherApps: true)
-        } else {
-            pendingOpens.append(.url(url))
-            openWindowAction?(id: "contents")
+        for entry in registeredWindows {
+            guard let entryViewModel = entry.viewModel,
+                  entryViewModel !== viewModel,
+                  entryViewModel.images.isEmpty else { continue }
+            logger.info("closeEmptyWindows: closing a stale empty window")
+            entry.window?.close()
         }
     }
 }

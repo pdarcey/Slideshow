@@ -76,6 +76,7 @@
 		C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataTextView.swift; sourceTree = "<group>"; };
 		C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollZoomView.swift; sourceTree = "<group>"; };
 		C9B0EC2C2E48B353006081A4 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
+		C9D08A663040871E00E37B34 /* Slideshow.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Slideshow.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +107,7 @@
 		C90BA3982A97841900A006DC = {
 			isa = PBXGroup;
 			children = (
+				C9D08A663040871E00E37B34 /* Slideshow.xctestplan */,
 				C90BA3A32A97841900A006DC /* Slideshow */,
 				C90BA3B52A97841B00A006DC /* SlideshowTests */,
 				C90BA3BF2A97841B00A006DC /* SlideshowUITests */,

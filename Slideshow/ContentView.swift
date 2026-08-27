@@ -45,19 +45,12 @@ struct ContentView: View {
             // this window is even in the registry to be counted correctly.
             AppCoordinator.shared.openWindowAction = openWindow
             let handledByBootstrap = AppCoordinator.shared.bootstrapLaunchIfNeeded(into: viewModel)
-            // A freshly-opened window created for a Finder/Dock file-open
-            // event, or for launch-time restoration of a 2nd+ window, picks
-            // up its target here — but only if bootstrap didn't already
-            // handle *this* window directly (it queues entries for
-            // additional windows, not for itself).
-            if !handledByBootstrap, let pending = AppCoordinator.shared.consumePendingOpen() {
-                switch pending {
-                case .url(let url):
-                    let (folderURL, selectedImage) = viewModel.parseSelectedURL(url)
-                    viewModel.getImagesAtURL(folderURL, selectedImage: selectedImage)
-                case .restoredState(let state):
-                    viewModel.resume(from: state)
-                }
+            // A freshly-opened window created for launch-time restoration of
+            // a 2nd+ window picks up its target here — but only if bootstrap
+            // didn't already handle *this* window directly (it queues
+            // entries for additional windows, not for itself).
+            if !handledByBootstrap, let state = AppCoordinator.shared.consumePendingOpen() {
+                viewModel.resume(from: state)
             }
             viewModel.onStateChanged = { AppCoordinator.shared.windowStateDidChange() }
             captureWindowIfNeeded()
@@ -70,11 +63,17 @@ struct ContentView: View {
         }
         .onOpenURL { url in
             // SwiftUI's WindowGroup handles Finder/Dock file-open events
-            // itself once document types are registered — it creates (or
-            // routes to) a window and delivers the URL here, rather than
-            // ever reaching AppDelegate.application(_:open:).
+            // itself once document types are registered — it creates a new
+            // window and delivers the URL here, rather than ever reaching
+            // AppDelegate.application(_:open:) (confirmed via testing; see
+            // the note on AppDelegate). If another window was already
+            // sitting empty, it's now redundant — close it rather than
+            // leave it stranded.
             let (folderURL, selectedImage) = viewModel.parseSelectedURL(url)
             viewModel.getImagesAtURL(folderURL, selectedImage: selectedImage)
+            if !viewModel.images.isEmpty {
+                AppCoordinator.shared.closeEmptyWindows(excluding: viewModel)
+            }
         }
     }
 
@@ -82,7 +81,7 @@ struct ContentView: View {
     /// be active, then registers it with `AppCoordinator` — same pattern
     /// `SlideView` uses for full-screen targeting, reused here so a
     /// specific window (not just "the app") can be tracked for persistence
-    /// and later reuse.
+    /// and for closing a now-redundant empty window elsewhere.
     private func captureWindowIfNeeded() {
         guard appearsActive, window == nil else { return }
         window = NSApplication.shared.keyWindow

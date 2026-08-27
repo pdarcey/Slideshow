@@ -34,20 +34,6 @@ struct DefaultView: View {
                 Button("Select folder") {
                     viewModel.selectFileOrFolder()
                 }
-                .onDrop(of: ["public.file-url"], isTargeted: $dragOver) { providers -> Bool in
-                    providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
-                        if let data = data, let path = NSString(data: data, encoding: 4), let selection = URL(string: path as String) {
-                            // loadDataRepresentation's completion handler runs
-                            // off the main actor, but the view model isn't —
-                            // hop back before touching it.
-                            Task { @MainActor in
-                                let (folderURL, selectedImage) = viewModel.parseSelectedURL(selection)
-                                viewModel.getImagesAtURL(folderURL, selectedImage: selectedImage)
-                            }
-                        }
-                    })
-                    return true
-                }
 
                 if !viewModel.images.isEmpty {
                     Button("Start") {
@@ -61,6 +47,27 @@ struct DefaultView: View {
             }
         }
         .padding()
+        // The whole picker screen is the drop target now, not just the
+        // "Select folder" button — and dragOver (already tracked, but
+        // previously never actually shown) now drives a visible highlight.
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let selection = urls.first else { return false }
+            Task { @MainActor in
+                let (folderURL, selectedImage) = viewModel.parseSelectedURL(selection)
+                viewModel.getImagesAtURL(folderURL, selectedImage: selectedImage)
+            }
+            return true
+        } isTargeted: { targeted in
+            dragOver = targeted
+        }
+        .overlay {
+            if dragOver {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.accentColor, lineWidth: 3)
+                    .padding(4)
+            }
+        }
+        .animation(.easeInOut(duration: 0.15), value: dragOver)
     }
 }
 

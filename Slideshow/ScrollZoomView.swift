@@ -18,7 +18,7 @@ class ScrollWheelDetector: NSView {
         if event.hasPreciseScrollingDeltas {
             delta = event.scrollingDeltaY
         } else {
-            delta = event.scrollingDeltaY * 1 // scale up for mouse wheels if needed
+            delta = event.scrollingDeltaY * 0.1 // scale up for mouse wheels if needed
         }
 
         onScroll?(delta)

@@ -9,15 +9,18 @@ import SwiftUI
 
 struct ScrollZoomView: NSViewRepresentable {
     var onScroll: (CGFloat) -> Void
+    var onMagnify: (CGFloat) -> Void = { _ in }
 
-    func makeNSView(context: Context) -> ScrollWheelDetector {
-        let view = ScrollWheelDetector()
+    func makeNSView(context: Context) -> ZoomGestureDetector {
+        let view = ZoomGestureDetector()
         view.onScroll = onScroll
+        view.onMagnify = onMagnify
         return view
     }
 
-    func updateNSView(_ nsView: ScrollWheelDetector, context: Context) {
+    func updateNSView(_ nsView: ZoomGestureDetector, context: Context) {
         nsView.onScroll = onScroll
+        nsView.onMagnify = onMagnify
     }
 }
 

@@ -20,6 +20,12 @@ struct SlideView: View {
     @FocusState private var focussed: Bool
     @AppStorage("showMetadata") var showMetadata = true
     @State private var scale: CGFloat = 1
+    @State private var offset: CGSize = .zero
+    @State private var dragStartOffset: CGSize = .zero
+    @State private var containerSize: CGSize = .zero
+    private let minScale: CGFloat = 1
+    private let maxScale: CGFloat = 5
+    private let zoomStep: CGFloat = 0.25
     @State private var showHelp = false
     @Environment(\.appearsActive) private var appearsActive
     @State private var window: NSWindow?
@@ -61,6 +67,7 @@ struct SlideView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .scaleEffect(scale)
+                    .offset(offset)
                     .id(slide.id)
                     .transition(slideTransition == .crossFade ? .opacity : .identity)
 
@@ -75,15 +82,23 @@ struct SlideView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
 
-                ScrollZoomView { delta in
-                    scale += delta
-                }
+                ScrollZoomView(
+                    onScroll: { delta in
+                        setScale(scale + delta)
+                    },
+                    onMagnify: { delta in
+                        setScale(scale + delta)
+                    }
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.clear)
             }
         }
         .focusable()
         .focused($focussed)
+        .onGeometryChange(for: CGSize.self, of: \.size) { newSize in
+            containerSize = newSize
+        }
         .onAppear {
             focussed = true
             captureWindowIfNeeded()
@@ -135,12 +150,26 @@ struct SlideView: View {
                 return .handled
             }
         })
-        .onKeyPress(keys: ["="], action: { _ in
-            // Return scale to 100%
+        .onKeyPress(keys: ["=", "+"], action: { press in
+            // Bare "=": reset scale/offset to 100%. Cmd+= (or Cmd++, on
+            // keyboards/layouts that send "+" directly): zoom in a step.
+            guard press.modifiers.contains(.command) || press.key == "=" else { return .ignored }
             withAnimation {
-                scale = 1.0
-                return .handled
+                if press.modifiers.contains(.command) {
+                    setScale(scale + zoomStep)
+                } else {
+                    resetZoom()
+                }
             }
+            return .handled
+        })
+        .onKeyPress(keys: ["-"], action: { press in
+            // Cmd-minus: zoom out a step. Bare "-" isn't bound to anything.
+            guard press.modifiers.contains(.command) else { return .ignored }
+            withAnimation {
+                setScale(scale - zoomStep)
+            }
+            return .handled
         })
         .onKeyPress(keys: ["?"], action: { _ in
             // Toggle Help display
@@ -175,6 +204,52 @@ struct SlideView: View {
                 }
             }
         })
+        .simultaneousGesture(panGesture)
+    }
+
+    /// Drags the zoomed image around within the window. A no-op at 100%
+    /// (`scale == 1`) so it never competes with tap-to-advance when the
+    /// image isn't zoomed — there's nothing to pan at that point anyway.
+    private var panGesture: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                guard scale > minScale else { return }
+                offset = clampedOffset(CGSize(
+                    width: dragStartOffset.width + value.translation.width,
+                    height: dragStartOffset.height + value.translation.height
+                ))
+            }
+            .onEnded { _ in
+                dragStartOffset = offset
+            }
+    }
+
+    /// Clamps `scale` to a sane range and re-clamps `offset` to match, so
+    /// every zoom input — scroll wheel, pinch, keyboard — shares one code
+    /// path and panning never ends up out of bounds after a zoom change.
+    private func setScale(_ newScale: CGFloat) {
+        scale = min(max(newScale, minScale), maxScale)
+        offset = clampedOffset(offset)
+    }
+
+    /// Approximates how far the image can be panned at the current scale:
+    /// the container's own size scaled by (scale - 1), halved per axis.
+    /// Not pixel-perfect against the actual aspect-fit image bounds when a
+    /// photo doesn't fill the container in both dimensions, but close
+    /// enough to keep it from being dragged fully off-screen.
+    private func clampedOffset(_ proposed: CGSize) -> CGSize {
+        let maxX = containerSize.width * (scale - minScale) / 2
+        let maxY = containerSize.height * (scale - minScale) / 2
+        guard maxX > 0 || maxY > 0 else { return .zero }
+        return CGSize(
+            width: min(max(proposed.width, -maxX), maxX),
+            height: min(max(proposed.height, -maxY), maxY)
+        )
+    }
+
+    private func resetZoom() {
+        scale = minScale
+        offset = .zero
     }
 
     /// Stops the slideshow and exits full screen. Centralizes the sequence

@@ -40,18 +40,23 @@
    image to the last-displayed slide via a new `SlideView.onEnd` callback and
    `ViewModel.selectSlide(at:)`, and persists that selection across a relaunch the same way every
    other selection change does.
+9. Stage 8 (zoom & pan): scale clamped to 1×-5× everywhere (scroll, pinch, keyboard — previously
+   unclamped); Cmd-+/Cmd- step-zoom by 25%, bare `=` still resets scale *and* pan to defaults;
+   drag-to-pan via a new `offset` state, active only once zoomed (a no-op at 100%, so it never
+   competes with tap-to-advance), clamped to an approximation of the zoomed image's bounds based on
+   the visible container size. Pinch-to-zoom needed a real fix mid-stage: a `MagnifyGesture` attached
+   directly to the image did nothing, because `ScrollZoomView`'s NSView already has to sit on top of
+   the whole slide area for scroll-wheel capture, and was silently swallowing magnify events before
+   they reached the SwiftUI gesture underneath. Fixed by extending that same NSView bridge — renamed
+   `ScrollWheelDetector` → `ZoomGestureDetector` — to also override `magnify(with:)`, exactly like it
+   already overrides `scrollWheel(with:)`, feeding both through the same `setScale` path.
 
 All merged to `main` as of 2026-08-28.
 
 ## Next stages: confirmed order
 
-The remaining Clarity backlog (9 outstanding issues), grouped by what touches the same code and what
+The remaining Clarity backlog (7 outstanding issues), grouped by what touches the same code and what
 depends on what, confirmed with Paul 2026-08-28:
-
-### Stage 8: Zoom & pan (`SlideView`, `ScrollZoomView`)
-- Pinch-to-zoom (`MagnifyGesture`) + Cmd+/Cmd- keyboard shortcuts — extends the existing `scale` state
-  already used by scroll-to-zoom.
-- Drag-to-pan a zoomed image — needs a new `offset` state, reset alongside the existing `=` handler.
 
 ### Stage 9: Slideshow transition (hero ↔ first slide only)
 - Hero image ↔ first slide transition via `matchedTransitionSource`/`navigationTransition`.

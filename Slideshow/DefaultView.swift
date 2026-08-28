@@ -9,6 +9,10 @@ import SwiftUI
 
 struct DefaultView: View {
     var viewModel: ContentView.ViewModel
+    /// Shared with `SlideView`'s current slide (via `ContentView`), so the
+    /// hero image morphs into the first slide when a slideshow starts,
+    /// rather than just cutting or crossfading. See `ContentView`.
+    var namespace: Namespace.ID
     var onStartAtCurrent: () -> Void
     var onRestartFromBeginning: () -> Void
 
@@ -55,6 +59,7 @@ struct DefaultView: View {
                     }
                     .shadow(radius: 8)
                     .padding(.bottom)
+                    .matchedGeometryEffect(id: "hero", in: namespace)
             }
 
             HStack {
@@ -121,10 +126,23 @@ struct DefaultView: View {
     }
 }
 
+// MARK: - Previews
+
+/// `#Preview` can't declare `@Namespace` directly (it needs a real `View`
+/// declaration context), so a small container view supplies one.
+private struct DefaultViewPreviewContainer: View {
+    @Namespace private var namespace
+
+    var body: some View {
+        DefaultView(
+            viewModel: ContentView.ViewModel(),
+            namespace: namespace,
+            onStartAtCurrent: {},
+            onRestartFromBeginning: {}
+        )
+    }
+}
+
 #Preview {
-    DefaultView(
-        viewModel: ContentView.ViewModel(),
-        onStartAtCurrent: {},
-        onRestartFromBeginning: {}
-    )
+    DefaultViewPreviewContainer()
 }

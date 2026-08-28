@@ -17,6 +17,20 @@ struct SlideView: View {
     /// ends (Esc, or reaching the last slide), so the caller can make the
     /// picker screen's hero image reflect wherever the user left off.
     var onEnd: (Int) -> Void = { _ in }
+    /// Shared with `DefaultView`'s hero image (via `ContentView`), so the
+    /// current slide morphs from/into the hero image when the slideshow
+    /// starts/ends, rather than just cutting or crossfading. See
+    /// `ContentView`.
+    var namespace: Namespace.ID
+    /// True only for the slide actually involved in a hero-image morph:
+    /// the first slide shown when the slideshow starts, and (briefly, set
+    /// by `endSlideshow()`) whichever slide is showing when it ends. False
+    /// for every other, ordinary slide-to-slide navigation — `.id(slide.id)`
+    /// gives each slide fresh view identity, so if *every* slide carried
+    /// the same matchedGeometryEffect id, SwiftUI would try to morph
+    /// between consecutive slides too (replacing the plain crossfade with
+    /// odd grow/slide artifacts), not just at the DefaultView boundary.
+    @State private var isHeroTransitionSlide = true
     @FocusState private var focussed: Bool
     @AppStorage("showMetadata") var showMetadata = true
     @State private var scale: CGFloat = 1
@@ -42,12 +56,14 @@ struct SlideView: View {
         autoModeInterval: Double = 3.0,
         currentImage: Int,
         slideshowIsRunning: Binding<Bool>,
+        namespace: Namespace.ID,
         onEnd: @escaping (Int) -> Void = { _ in }
     ) {
         self.slides = slides
         self.autoModeInterval = autoModeInterval
         self.currentImage = currentImage
         self._slideshowIsRunning = slideshowIsRunning
+        self.namespace = namespace
         self.onEnd = onEnd
         self.timer = Timer.publish(every: autoModeInterval, on: .main, in: .common).autoconnect()
     }
@@ -70,6 +86,7 @@ struct SlideView: View {
                     .offset(offset)
                     .id(slide.id)
                     .transition(slideTransition == .crossFade ? .opacity : .identity)
+                    .matchedGeometryEffect(id: isHeroTransitionSlide ? "hero" : "slide-\(slide.id)", in: namespace)
 
                 if showMetadata {
                     MetadataTextView(text: "\(currentImage + 1) of \(slides.count): \(slide.imageName.withoutExtension())")
@@ -118,6 +135,7 @@ struct SlideView: View {
                 autoMode = false
                 if currentImage > 0 {
                     // Show previous slide
+                    isHeroTransitionSlide = false
                     currentImage -= 1
                 }
                 return .handled
@@ -126,13 +144,7 @@ struct SlideView: View {
         .onKeyPress(keys: [.space, .rightArrow, .return], action: { _ in
             withAnimation(.easeInOut(duration: transitionDuration)) {
                 autoMode = false
-                if (currentImage + 1) < slides.count {
-                    // Show next slide
-                    currentImage += 1
-                } else {
-                    // Last slide has been shown, cancel the slideshow
-                    endSlideshow()
-                }
+                advanceSlide()
                 return .handled
             }
         })
@@ -183,25 +195,13 @@ struct SlideView: View {
             if autoMode {
                 guard !slides.isEmpty else { return }
                 withAnimation(.easeInOut(duration: transitionDuration)) {
-                    if (currentImage + 1) < slides.count {
-                        // Show next slide
-                        currentImage += 1
-                    } else {
-                        // Last slide has been shown, cancel the slideshow
-                        endSlideshow()
-                    }
+                    advanceSlide()
                 }
             }
         }
         .onTapGesture(perform: {
             withAnimation(.easeInOut(duration: transitionDuration)) {
-                if (currentImage + 1) < slides.count {
-                    // Show next slide
-                    currentImage += 1
-                } else {
-                    // Last slide has been shown, cancel the slideshow
-                    endSlideshow()
-                }
+                advanceSlide()
             }
         })
         .simultaneousGesture(panGesture)
@@ -252,13 +252,31 @@ struct SlideView: View {
         offset = .zero
     }
 
+    /// Shows the next slide, or ends the slideshow if this was the last
+    /// one. Shared by the right-arrow/space/return key handler, the
+    /// auto-mode timer, and tap-to-advance — all three do exactly this.
+    private func advanceSlide() {
+        if (currentImage + 1) < slides.count {
+            isHeroTransitionSlide = false
+            currentImage += 1
+        } else {
+            endSlideshow()
+        }
+    }
+
     /// Stops the slideshow and exits full screen. Centralizes the sequence
     /// every "reached the last slide" / "user cancelled" path needs, so it's
-    /// defined once instead of repeated at each call site.
+    /// defined once instead of repeated at each call site. Doesn't reset
+    /// `currentImage`: this SlideView instance is discarded, not reused —
+    /// `ContentView` constructs a brand new one, with fresh @State, the
+    /// next time a slideshow starts.
     private func endSlideshow() {
+        // The slide on screen right now is what should morph back into the
+        // hero image, whatever it is — re-mark it as the transition slide
+        // even if the user long since navigated away from the entry slide.
+        isHeroTransitionSlide = true
         onEnd(currentImage)
         slideshowIsRunning = false
-        currentImage = 0
         exitFullScreen()
     }
 

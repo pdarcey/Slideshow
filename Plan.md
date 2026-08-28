@@ -50,18 +50,28 @@
    they reached the SwiftUI gesture underneath. Fixed by extending that same NSView bridge — renamed
    `ScrollWheelDetector` → `ZoomGestureDetector` — to also override `magnify(with:)`, exactly like it
    already overrides `scrollWheel(with:)`, feeding both through the same `setScale` path.
+10. Stage 9 (hero ↔ slide transition): used `matchedGeometryEffect` rather than the
+    `matchedTransitionSource`/`.navigationTransition(.zoom)` API originally suggested — that one's
+    built specifically for `NavigationStack` push/pop, which this app deliberately doesn't use
+    (confirmed with Paul before implementing). Shared `@Namespace` lives on `ContentView`, passed to
+    both `DefaultView` (hero image) and `SlideView` (current slide). Needed a real fix mid-stage: since
+    every slide shares the same `matchedGeometryEffect` id, and `.id(slide.id)` gives each slide fresh
+    view identity, ordinary slide-to-slide navigation was *also* being treated as a hero-morph moment
+    (replacing the plain crossfade with random-looking grow/slide artifacts) — fixed with a new
+    `isHeroTransitionSlide` flag on `SlideView`, true only for the slide shown when the show starts and
+    (briefly) whichever slide is showing when it ends, false for every ordinary navigation in between
+    (every other slide gets a unique per-slide id instead, an inert no-op). Also extracted a shared
+    `advanceSlide()` helper, deduplicating three near-identical "advance or end" blocks.
 
 All merged to `main` as of 2026-08-28.
 
 ## Next stages: confirmed order
 
-The remaining Clarity backlog (7 outstanding issues), grouped by what touches the same code and what
+The remaining Clarity backlog (6 outstanding issues), grouped by what touches the same code and what
 depends on what, confirmed with Paul 2026-08-28:
 
-### Stage 9: Slideshow transition (hero ↔ first slide only)
-- Hero image ↔ first slide transition via `matchedTransitionSource`/`navigationTransition`.
-- **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
-  (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
+**Deferred, not part of this stage plan:** multiple selectable transition styles between slides
+(fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
 
 ### Stage 10: Menu-bar & window integration
 - Cmd-F full-screen toggle.

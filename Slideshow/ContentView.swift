@@ -14,6 +14,14 @@ struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.appearsActive) private var appearsActive
     @State private var window: NSWindow?
+    /// Shared between `DefaultView`'s hero image and `SlideView`'s current
+    /// slide, so starting/ending a slideshow morphs the photo between the
+    /// two rather than just cutting or crossfading. Only ever one of the
+    /// two views carrying this id exists at a time (they're mutually
+    /// exclusive branches below), so it has no effect on ordinary
+    /// slide-to-slide navigation within a running slideshow — only on the
+    /// moment this ZStack swaps between the two branches.
+    @Namespace private var heroNamespace
 
     var body: some View {
         ZStack {
@@ -22,6 +30,7 @@ struct ContentView: View {
                     slides: viewModel.images,
                     currentImage: startIndex,
                     slideshowIsRunning: $slideShowIsRunning,
+                    namespace: heroNamespace,
                     onEnd: { lastDisplayedIndex in
                         viewModel.selectSlide(at: lastDisplayedIndex)
                     }
@@ -29,6 +38,7 @@ struct ContentView: View {
             } else {
                 DefaultView(
                     viewModel: viewModel,
+                    namespace: heroNamespace,
                     onStartAtCurrent: startAtCurrent,
                     onRestartFromBeginning: restartFromBeginning
                 )

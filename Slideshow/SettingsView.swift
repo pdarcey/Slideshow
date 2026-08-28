@@ -1,26 +1,11 @@
 //
-//  Settings.swift
+//  SettingsView.swift
 //  Slideshow
 //
 //  Created by Paul Darcey on 9/8/2025.
 //
 
 import SwiftUI
-
-/// How consecutive slides transition when advancing.
-enum SlideTransition: String, CaseIterable, Identifiable {
-    case crossFade
-    case cut
-
-    var id: Self { self }
-
-    var label: String {
-        switch self {
-        case .crossFade: "Cross-fade"
-        case .cut: "None"
-        }
-    }
-}
 
 struct SettingsView: View {
     @AppStorage("autoModeInterval") var interval: Double = 3.0
@@ -57,6 +42,8 @@ struct SettingsView: View {
         .frame(minWidth: 380)
     }
 }
+
+// MARK: - Previews
 
 #Preview {
     SettingsView()

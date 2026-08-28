@@ -17,6 +17,11 @@
 		C90BA3D02A97852C00A006DC /* PreviewImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3CF2A97852C00A006DC /* PreviewImages.swift */; };
 		C90BA3D22A97881500A006DC /* SlideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3D12A97881500A006DC /* SlideView.swift */; };
 		C90BA3D42A978B4700A006DC /* DefaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3D32A978B4700A006DC /* DefaultView.swift */; };
+		C92649CD304169EE0058641B /* KeyDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649CC304169EE0058641B /* KeyDescription.swift */; };
+		C92649CF304169F10058641B /* KeyOutline.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649CE304169F10058641B /* KeyOutline.swift */; };
+		C92649D130416A350058641B /* OutlineText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D030416A350058641B /* OutlineText.swift */; };
+		C92649D330416A390058641B /* ScrollWheelDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D230416A390058641B /* ScrollWheelDetector.swift */; };
+		C92649D530416A3D0058641B /* SlideTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D430416A3D0058641B /* SlideTransition.swift */; };
 		C9697E49303FFCA90025F8F3 /* Slide.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E48303FFCA90025F8F3 /* Slide.swift */; };
 		C9697E4B303FFCB80025F8F3 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */; };
 		C9697E4D303FFD8D0025F8F3 /* ContentViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */; };
@@ -25,7 +30,7 @@
 		C9697E5430406F900025F8F3 /* WindowState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E5330406F900025F8F3 /* WindowState.swift */; };
 		C9697E5630406F970025F8F3 /* WindowStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E5530406F970025F8F3 /* WindowStateStore.swift */; };
 		C9697E58304088F10025F8F3 /* FocusedSlideshowWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E57304088F10025F8F3 /* FocusedSlideshowWindow.swift */; };
-		C9815D602E4751CD00F9351E /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9815D5F2E4751CD00F9351E /* Settings.swift */; };
+		C9815D602E4751CD00F9351E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9815D5F2E4751CD00F9351E /* SettingsView.swift */; };
 		C9815D622E4755F900F9351E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9815D612E4755F900F9351E /* AboutView.swift */; };
 		C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */; };
 		C9B0EC2B2E48B002006081A4 /* ScrollZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */; };
@@ -64,6 +69,11 @@
 		C90BA3CF2A97852C00A006DC /* PreviewImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewImages.swift; sourceTree = "<group>"; };
 		C90BA3D12A97881500A006DC /* SlideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideView.swift; sourceTree = "<group>"; };
 		C90BA3D32A978B4700A006DC /* DefaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultView.swift; sourceTree = "<group>"; };
+		C92649CC304169EE0058641B /* KeyDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyDescription.swift; sourceTree = "<group>"; };
+		C92649CE304169F10058641B /* KeyOutline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyOutline.swift; sourceTree = "<group>"; };
+		C92649D030416A350058641B /* OutlineText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutlineText.swift; sourceTree = "<group>"; };
+		C92649D230416A390058641B /* ScrollWheelDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollWheelDetector.swift; sourceTree = "<group>"; };
+		C92649D430416A3D0058641B /* SlideTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideTransition.swift; sourceTree = "<group>"; };
 		C9697E48303FFCA90025F8F3 /* Slide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slide.swift; sourceTree = "<group>"; };
 		C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel.swift"; sourceTree = "<group>"; };
 		C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModelTests.swift; sourceTree = "<group>"; };
@@ -73,7 +83,7 @@
 		C9697E5330406F900025F8F3 /* WindowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowState.swift; sourceTree = "<group>"; };
 		C9697E5530406F970025F8F3 /* WindowStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowStateStore.swift; sourceTree = "<group>"; };
 		C9697E57304088F10025F8F3 /* FocusedSlideshowWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedSlideshowWindow.swift; sourceTree = "<group>"; };
-		C9815D5F2E4751CD00F9351E /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		C9815D5F2E4751CD00F9351E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C9815D612E4755F900F9351E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataTextView.swift; sourceTree = "<group>"; };
 		C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollZoomView.swift; sourceTree = "<group>"; };
@@ -133,7 +143,7 @@
 				C9697E4E30400CAB0025F8F3 /* Info.plist */,
 				C90BA3A42A97841900A006DC /* SlideshowApp.swift */,
 				C9815D612E4755F900F9351E /* AboutView.swift */,
-				C9815D5F2E4751CD00F9351E /* Settings.swift */,
+				C9815D5F2E4751CD00F9351E /* SettingsView.swift */,
 				C90BA3A62A97841900A006DC /* ContentView.swift */,
 				C90BA3D32A978B4700A006DC /* DefaultView.swift */,
 				C90BA3D12A97881500A006DC /* SlideView.swift */,
@@ -150,6 +160,11 @@
 				C9697E5330406F900025F8F3 /* WindowState.swift */,
 				C9697E5530406F970025F8F3 /* WindowStateStore.swift */,
 				C9697E57304088F10025F8F3 /* FocusedSlideshowWindow.swift */,
+				C92649CC304169EE0058641B /* KeyDescription.swift */,
+				C92649CE304169F10058641B /* KeyOutline.swift */,
+				C92649D030416A350058641B /* OutlineText.swift */,
+				C92649D230416A390058641B /* ScrollWheelDetector.swift */,
+				C92649D430416A3D0058641B /* SlideTransition.swift */,
 			);
 			path = Slideshow;
 			sourceTree = "<group>";
@@ -359,16 +374,21 @@
 				C9697E5030400CB90025F8F3 /* AppCoordinator.swift in Sources */,
 				C90BA3A72A97841900A006DC /* ContentView.swift in Sources */,
 				C9697E5230400CC00025F8F3 /* AppDelegate.swift in Sources */,
+				C92649D130416A350058641B /* OutlineText.swift in Sources */,
 				C9B0EC2B2E48B002006081A4 /* ScrollZoomView.swift in Sources */,
 				C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */,
 				C9697E5630406F970025F8F3 /* WindowStateStore.swift in Sources */,
 				C90BA3A52A97841900A006DC /* SlideshowApp.swift in Sources */,
 				C90BA3D22A97881500A006DC /* SlideView.swift in Sources */,
 				C9697E49303FFCA90025F8F3 /* Slide.swift in Sources */,
+				C92649D530416A3D0058641B /* SlideTransition.swift in Sources */,
 				C9697E58304088F10025F8F3 /* FocusedSlideshowWindow.swift in Sources */,
 				C90BA3D02A97852C00A006DC /* PreviewImages.swift in Sources */,
-				C9815D602E4751CD00F9351E /* Settings.swift in Sources */,
+				C9815D602E4751CD00F9351E /* SettingsView.swift in Sources */,
+				C92649CD304169EE0058641B /* KeyDescription.swift in Sources */,
 				C90BA3D42A978B4700A006DC /* DefaultView.swift in Sources */,
+				C92649CF304169F10058641B /* KeyOutline.swift in Sources */,
+				C92649D330416A390058641B /* ScrollWheelDetector.swift in Sources */,
 				C9697E4B303FFCB80025F8F3 /* ContentView+ViewModel.swift in Sources */,
 				C9697E5430406F900025F8F3 /* WindowState.swift in Sources */,
 			);

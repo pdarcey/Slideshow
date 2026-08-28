@@ -13,5 +13,5 @@ let previewImages: [Image] = [
     Image(.preview3),
     Image(.preview4),
     Image(.preview5),
-    Image(.preview6),
+    Image(.preview6)
 ]

@@ -19,35 +19,62 @@
    - 5d: Open/Continue/Re-start from Beginning keyboard shortcuts (`FocusedSlideshowWindow`).
    - 5e: discoverability polish for picking a single file to start on.
 
+6. Ran `initialise-new-project` against the existing setup (scoped down to build tooling only, since
+   docs/`.gitignore`/git history already predated the skill): SwiftLint as a build phase, automatic
+   `CFBundleVersion` bump from `git rev-list --count main` (`Scripts/update-build-number.sh`, run as
+   the *last* build phase — this target's `GENERATE_INFOPLIST_FILE = YES` means a first-phase script
+   can't influence generation regardless of ordering).
+
 All merged to `main` as of 2026-08-28.
 
-## Next stage: pick one cluster
+## Next stages: confirmed order
 
-Four groupings remain in the Clarity backlog, not yet individually scoped the way Stage 5 was.
-Suggested order given natural dependencies and effort:
+The remaining Clarity backlog (19 outstanding issues), grouped by what touches the same code and what
+depends on what, confirmed with Paul 2026-08-28:
 
-### A. Zoom/pan
-- Pinch-to-zoom (trackpad magnify gesture) and Cmd+/Cmd- keyboard shortcuts — `SlideView` already has
-  scroll-to-zoom via `ScrollZoomView`; this extends the same `scale` state to more input methods.
-- Drag-to-pan a zoomed image within the window — needs an offset alongside the existing `scale`.
+### Stage 6: Quick wins (isolated bug fixes)
+- Fix the thick grey border around the link in the About screen.
+- Fix Help screen's unreadable text in Light Mode.
 
-### B. Menu-bar/window integration
-- Menu equivalents for in-slideshow toggles (Metadata `M`, Auto Mode `A`, Help `?`, Reset Zoom `=`) —
-  natural fit for `FocusedSlideshowWindow`, which already bridges frontmost-window state/actions to
-  `.commands`; would need extending to also read/toggle `SlideView`'s local `@AppStorage`-backed state.
-- Cmd-F to toggle full screen for the current window.
-- Context menu / copy / share for the displayed image.
+### Stage 7: Ready-screen polish (batch — all touch `DefaultView`/`ContentView`)
+- Rename "Start Slideshow" button → "Select".
+- Window title → folder name + image count.
+- Remove the now-redundant title above the hero image.
+- Clip hero photo to rounded rect + border/shadow.
+- Three ready-screen buttons → circles with images/tooltips.
+- Accent colour on the default button.
+- Default window size → 1500×1500.
+- On `Esc`, hero image becomes the last-displayed slide (resume point).
 
-### C. Accessibility
-- No VoiceOver support anywhere in the app. Not yet scoped — needs an audit pass first (which views,
-  which controls, what the expected reading order/labels should be) before implementation.
+### Stage 8: Zoom & pan (`SlideView`, `ScrollZoomView`)
+- Pinch-to-zoom (`MagnifyGesture`) + Cmd+/Cmd- keyboard shortcuts — extends the existing `scale` state
+  already used by scroll-to-zoom.
+- Drag-to-pan a zoomed image — needs a new `offset` state, reset alongside the existing `=` handler.
 
-### D. Performance — memory footprint
+### Stage 9: Slideshow transition (hero ↔ first slide only)
+- Hero image ↔ first slide transition via `matchedTransitionSource`/`navigationTransition`.
+- **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
+  (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
+
+### Stage 10: Menu-bar & window integration
+- Cmd-F full-screen toggle.
+- Menu equivalents for Metadata/Auto Mode/Help/Reset Zoom (needs lifting some `SlideView` local
+  `@State` to focused values, via `FocusedSlideshowWindow`).
+- Context menu / Copy / Reveal in Finder / Share for the displayed image.
+
+### Stage 11: Accessibility audit
+- No VoiceOver support anywhere in the app. Deliberately scheduled *after* Stages 8–10, since those
+  add new interactive surfaces (gestures, menu commands, context menu) that should get accessibility
+  support built in the first time rather than retrofitted twice. Run the
+  `swiftui-accessibility-auditor` skill across the whole app here.
+
+### Stage 12: Memory footprint
 - `ContentView.ViewModel.getImagesAtURL` loads every image in a folder eagerly into memory via
   `NSImage(contentsOfFile:)`. Fine for modest folders, potentially heavy for very large ones. Any fix
   here needs to reconcile with the security-scoped bookmark design in `resume(from:)`, which currently
   assumes access is only needed for the duration of the eager load (see `Journal.md`) — lazy/paged
-  loading would change that assumption and need its own access-lifetime handling.
+  loading would change that assumption and need its own access-lifetime handling. Saved for last:
+  backlog-priority, most architecturally invasive, benefits from not being rushed alongside UI work.
 
 ## Working rhythm (established over Stage 5)
 

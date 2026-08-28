@@ -200,10 +200,8 @@ struct SlideView: View {
 extension String {
     func withoutExtension() -> String {
         let supportedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic", ".tiff"]
-        for ext in supportedExtensions {
-            if self.lowercased().hasSuffix(ext) {
-                return self.replacingOccurrences(of: ext, with: "", options: [.caseInsensitive])
-            }
+        for ext in supportedExtensions where self.lowercased().hasSuffix(ext) {
+            return self.replacingOccurrences(of: ext, with: "", options: [.caseInsensitive])
         }
         return self
     }

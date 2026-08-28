@@ -35,48 +35,14 @@ struct HelpView: View {
     }
 }
 
-struct KeyDescription: View {
-    var keys: [String]
-    var description: String
+// MARK: - Previews
 
-    init(keys: String..., description: String) {
-        self.keys = keys
-        self.description = description
-    }
-    var body: some View {
-        LabeledContent(content: {
-            OutlineText(text: description)
-        }, label: {
-            HStack {
-                ForEach(keys, id: \.self) { key in
-                    KeyOutline(key: key)
-                        .padding(.trailing, 3)
-                }
-            }
-        })
-    }
-}
-
-struct KeyOutline: View {
-    var key: String
-
-    var body: some View {
-        Text(key)
-            .font(.subheadline)
-            .foregroundStyle(Color.white)
-            .padding(5)
-            .background(
-                .thinMaterial,
-                in: RoundedRectangle(cornerRadius: 4)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(.secondary, lineWidth: 1)
-            )
-
-    }
-}
-
-#Preview {
+#Preview("Dark Mode") {
     HelpView()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Light Mode") {
+    HelpView()
+        .preferredColorScheme(.light)
 }

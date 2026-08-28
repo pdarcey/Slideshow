@@ -45,6 +45,7 @@ struct AboutView: View {
                     Text(copyright)
                     Link("xerodonia.com", destination: developerWebsite)
                         .foregroundStyle(Color(nsColor: .linkColor))
+                        .focusEffectDisabled()
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)

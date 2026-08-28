@@ -1,0 +1,13 @@
+line_length:
+  warning: 120
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_interpolated_strings: true
+  ignores_urls: true
+
+# ContentView.ViewModel.EmptyReason is a deliberate 2-level nesting (an
+# @Observable view model scoped under its view, with its own nested state
+# enum) - the default max of 1 flags that pattern even though it's the
+# project's established convention, not a code smell.
+nesting:
+  type_level: 2

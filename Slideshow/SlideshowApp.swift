@@ -23,7 +23,7 @@ struct SlideshowApp: App {
         WindowGroup("Slideshow", id: "contents") {
             ContentView()
         }
-        .windowIdealPlacement { content, context in
+        .windowIdealPlacement { _, context in
 //            var size = content.sizeThatFits(.unspecified)
             let displayBounds = context.defaultDisplay.visibleRect
             // modify size based on display bounds

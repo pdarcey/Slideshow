@@ -95,7 +95,7 @@ extension ContentView {
         /// specific file (rather than a folder) was picked, that file.
         func parseSelectedURL(_ url: URL) -> (folderURL: URL, selectedImage: URL?) {
             let folderURL: URL
-            var selectedImage: URL? = nil
+            var selectedImage: URL?
             if url.hasDirectoryPath {
                 folderURL = url
             } else {
@@ -126,7 +126,10 @@ extension ContentView {
         func getImagesAtURL(_ folderURL: URL, selectedImage: URL? = nil) {
             let fileManager = FileManager.default
 
-            guard let files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil) else {
+            guard let files = try? fileManager.contentsOfDirectory(
+                at: folderURL,
+                includingPropertiesForKeys: nil
+            ) else {
                 images = []
                 index = 0
                 bookmarkData = nil
@@ -154,7 +157,11 @@ extension ContentView {
                 // folderURL came from a fresh Powerbox grant or a resolved
                 // bookmark (resume(from:)) — this is what keeps a resumed
                 // window's stored bookmark from ever going stale.
-                bookmarkData = try? folderURL.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+                bookmarkData = try? folderURL.bookmarkData(
+                    options: [.withSecurityScope],
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                )
             }
             if let selectedImage, let startIndex = sortedImages.firstIndex(of: selectedImage) {
                 index = startIndex
@@ -182,7 +189,12 @@ extension ContentView {
             var resolveError: Error?
             let resolvedURL: URL?
             do {
-                resolvedURL = try URL(resolvingBookmarkData: state.bookmarkData, options: [.withSecurityScope], relativeTo: nil, bookmarkDataIsStale: &isStale)
+                resolvedURL = try URL(
+                    resolvingBookmarkData: state.bookmarkData,
+                    options: [.withSecurityScope],
+                    relativeTo: nil,
+                    bookmarkDataIsStale: &isStale
+                )
             } catch {
                 resolvedURL = nil
                 resolveError = error

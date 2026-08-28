@@ -33,6 +33,7 @@ struct DefaultView: View {
                     ContentUnavailableView(
                         "No Images Found",
                         image: "photo.stack.slash",
+                        // swiftlint:disable:next line_length
                         description: Text("That folder doesn't contain any supported images. Click **Select Folder or Image…** below to try a different one.")
                     )
                 case .previousFolderUnavailable:
@@ -43,6 +44,7 @@ struct DefaultView: View {
                         description: Text("The folder this window had open isn't available any more. It may have been moved, renamed, or deleted. Click **Select Folder or Image…** below to choose another.")
                     )
                 case .notYetAttempted:
+                    // swiftlint:disable:next line_length
                     ContentUnavailableView("Choose a folder of images, or a single image, to display", systemImage: "photo.on.rectangle")
                 }
                 Spacer()

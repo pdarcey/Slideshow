@@ -22,7 +22,10 @@ final class ContentViewModelTests {
         // from the string alone (no trailing slash on a bare UUID), not
         // from the filesystem — unlike a real NSOpenPanel-vended URL, whose
         // hasDirectoryPath is always correct.
-        tempDirectory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        tempDirectory = FileManager.default.temporaryDirectory.appending(
+            path: UUID().uuidString,
+            directoryHint: .isDirectory
+        )
         try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
     }
 
@@ -216,7 +219,11 @@ final class ContentViewModelTests {
         let vanishingDirectory = tempDirectory.appending(path: "vanishing", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: vanishingDirectory, withIntermediateDirectories: true)
         viewModel.getImagesAtURL(vanishingDirectory)
-        let bookmarkData = try vanishingDirectory.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+        let bookmarkData = try vanishingDirectory.bookmarkData(
+            options: [.withSecurityScope],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        )
         let state = WindowState(bookmarkData: bookmarkData, selectedImageName: nil)
         try FileManager.default.removeItem(at: vanishingDirectory)
 

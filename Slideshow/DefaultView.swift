@@ -26,6 +26,7 @@ struct DefaultView: View {
                     ContentUnavailableView(
                         "Can't Access That Folder",
                         systemImage: "lock.fill",
+                        // swiftlint:disable:next line_length
                         description: Text("macOS only grants Slideshow access to a single file on its own, not the folder it's in. Click **Select Folder or Image…** below, or drag onto this window, and choose the folder instead.")
                     )
                 case .noSupportedImages:
@@ -38,6 +39,7 @@ struct DefaultView: View {
                     ContentUnavailableView(
                         "Folder No Longer Available",
                         systemImage: "folder.badge.questionmark",
+                        // swiftlint:disable:next line_length
                         description: Text("The folder this window had open isn't available any more. It may have been moved, renamed, or deleted. Click **Select Folder or Image…** below to choose another.")
                     )
                 case .notYetAttempted:

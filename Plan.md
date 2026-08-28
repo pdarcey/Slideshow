@@ -119,8 +119,14 @@
       value text (e.g. "3.0 seconds") isn't visibly rendered by `Slider`'s label closure on macOS at
       all — Paul confirmed this is an acceptable, out-of-our-control platform quirk rather than
       something to chase further.
+13. Housekeeping: reorganised `Slideshow/`'s ~24 source files (previously flat) into
+    `App`/`Views`/`Views/ViewModels`/`Models`/`Services`/`Extensions`, per CLAUDE.md's standard
+    template. File moves only, no code changes — done via the Xcode MCP (`XcodeMakeDir`/`XcodeMV`) so
+    `project.pbxproj` stayed in sync automatically; every file confirmed byte-identical (git recognized
+    all 24 as clean renames). `Info.plist`/entitlements/`Assets.xcassets`/`Preview Content/` stay flat,
+    matching the template's own placement of those as direct children rather than nested.
 
-All merged to `main` as of 2026-08-28.
+All merged to `main` as of 2026-08-29, and pushed to `origin/main`.
 
 ## Next stages: confirmed order
 

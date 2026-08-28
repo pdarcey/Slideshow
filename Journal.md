@@ -2,13 +2,13 @@
 
 ## The Big Picture
 
-Picture the least glamorous app you could possibly build, and you're close to Slideshow. You point
-it at a folder of photos, it shows them full-screen one at a time, and that's the whole pitch. No
-albums, no editing, no cloud sync, no AI-powered "memories." Just: here's a folder, here are the
-photos in it, one after another, nicely.
+Picture the simplest slideshow app there is: You point it at a folder of photos, it shows them
+full-screen one at a time, and that's the whole pitch. No albums, no editing, no cloud sync, no
+AI-powered "memories." Just: here's a folder, there are photos in it, show them to me, one after
+another, nicely.
 
 That restraint is the actual feature. Every time a "wouldn't it be nice if…" idea comes up, the
-answer defaults to no unless it's in direct service of "show me these photos, full-screen, without
+answer defaults to **No** unless it's in direct service of "show me these photos, full-screen, without
 fuss." What *is* in scope: remembering where you left off, opening sensibly from Finder and the Dock,
 zooming in on a photo, and multiple windows behaving like a proper Mac app expects them to. What's
 deliberately not in scope: pretty much everything else.

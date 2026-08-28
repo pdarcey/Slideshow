@@ -8,10 +8,10 @@ Slideshow is a macOS app that displays a folder of photos/images full-screen, on
 user-configurable auto-advance timing, manual/auto progress, zoom, and metadata overlay. Multiple
 windows are supported — each remembers its own folder and selected image across a full quit/relaunch.
 
-It prioritises simplicity over "full-featuredness". It is there to display images as a slideshow; that's all!
+It prioritises **simplicity** over "full-featuredness". It is there to display images as a slideshow; that's all!
 
 - Bundle ID: `com.xerodonia.Slideshow`
-- Deployment target: macOS 26/Tahoe
+- Deployment target: macOS 15 (Sequoia)
 - Sandboxed app. Sandbox capabilities (`app-sandbox`, `files.user-selected.read-only`) are configured
   via Xcode's Signing & Capabilities UI as `ENABLE_APP_SANDBOX`/`ENABLE_USER_SELECTED_FILES` build
   settings rather than the raw `Slideshow.entitlements` file (which Xcode leaves as an empty `<dict/>`
@@ -38,10 +38,7 @@ xcodebuild -project Slideshow.xcodeproj -scheme Slideshow test \
 ```
 
 Prefer the Xcode MCP server for builds/tests/adding files when it's available, per global
-instructions. **Caution:** running tests through that server's `RunAllTests`/`RunSomeTests` has been
-observed to silently rewrite `Slideshow.xctestplan` on disk (dropping a manually-disabled test
-target, marking unrelated tests as skipped instead) — `git diff Slideshow.xctestplan` after a test
-run and revert if it changed unexpectedly.
+instructions.
 
 `SlideshowTests/ContentViewModelTests.swift` has real Swift Testing coverage (17 tests) for
 `ContentView.ViewModel`'s loading/persistence logic, using real temp directories and real image

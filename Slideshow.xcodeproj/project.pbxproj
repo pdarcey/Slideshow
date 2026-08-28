@@ -147,33 +147,14 @@
 			isa = PBXGroup;
 			children = (
 				C9697E4E30400CAB0025F8F3 /* Info.plist */,
-				C90BA3A42A97841900A006DC /* SlideshowApp.swift */,
-				C9815D612E4755F900F9351E /* AboutView.swift */,
-				C9815D5F2E4751CD00F9351E /* SettingsView.swift */,
-				C90BA3A62A97841900A006DC /* ContentView.swift */,
-				C90BA3D32A978B4700A006DC /* DefaultView.swift */,
-				C90BA3D12A97881500A006DC /* SlideView.swift */,
-				C9B0EC2C2E48B353006081A4 /* HelpView.swift */,
-				C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */,
-				C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */,
 				C90BA3A82A97841B00A006DC /* Assets.xcassets */,
 				C90BA3AD2A97841B00A006DC /* Slideshow.entitlements */,
 				C90BA3AA2A97841B00A006DC /* Preview Content */,
-				C9697E48303FFCA90025F8F3 /* Slide.swift */,
-				C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */,
-				C9697E4F30400CB90025F8F3 /* AppCoordinator.swift */,
-				C9697E5130400CC00025F8F3 /* AppDelegate.swift */,
-				C9697E5330406F900025F8F3 /* WindowState.swift */,
-				C9697E5530406F970025F8F3 /* WindowStateStore.swift */,
-				C9697E57304088F10025F8F3 /* FocusedSlideshowWindow.swift */,
-				C92649CC304169EE0058641B /* KeyDescription.swift */,
-				C92649CE304169F10058641B /* KeyOutline.swift */,
-				C92649D030416A350058641B /* OutlineText.swift */,
-				C92649D230416A390058641B /* ZoomGestureDetector.swift */,
-				C92649D430416A3D0058641B /* SlideTransition.swift */,
-				C92649D63041B7AC0058641B /* NSPasteboard+Image.swift */,
-				C92649D83041BF330058641B /* ShareSheetPresenter.swift */,
-				C92649DA3041C1C50058641B /* Animation+ReduceMotion.swift */,
+				C92649DC3041CBBB0058641B /* App */,
+				C92649DD3041CBBB0058641B /* Views */,
+				C92649DE3041CBBB0058641B /* Models */,
+				C92649DF3041CBBC0058641B /* Services */,
+				C92649E03041CBBC0058641B /* Extensions */,
 			);
 			path = Slideshow;
 			sourceTree = "<group>";
@@ -203,6 +184,73 @@
 				C90BA3C22A97841B00A006DC /* SlideshowUITestsLaunchTests.swift */,
 			);
 			path = SlideshowUITests;
+			sourceTree = "<group>";
+		};
+		C92649DC3041CBBB0058641B /* App */ = {
+			isa = PBXGroup;
+			children = (
+				C90BA3A42A97841900A006DC /* SlideshowApp.swift */,
+				C90BA3A62A97841900A006DC /* ContentView.swift */,
+				C9697E5130400CC00025F8F3 /* AppDelegate.swift */,
+				C9697E4F30400CB90025F8F3 /* AppCoordinator.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C92649DD3041CBBB0058641B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C92649E13041CBC00058641B /* ViewModels */,
+				C90BA3D32A978B4700A006DC /* DefaultView.swift */,
+				C90BA3D12A97881500A006DC /* SlideView.swift */,
+				C9815D612E4755F900F9351E /* AboutView.swift */,
+				C9B0EC2C2E48B353006081A4 /* HelpView.swift */,
+				C9815D5F2E4751CD00F9351E /* SettingsView.swift */,
+				C92649CC304169EE0058641B /* KeyDescription.swift */,
+				C92649CE304169F10058641B /* KeyOutline.swift */,
+				C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */,
+				C92649D030416A350058641B /* OutlineText.swift */,
+				C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */,
+				C92649D230416A390058641B /* ZoomGestureDetector.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C92649DE3041CBBB0058641B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C9697E48303FFCA90025F8F3 /* Slide.swift */,
+				C92649D430416A3D0058641B /* SlideTransition.swift */,
+				C9697E5330406F900025F8F3 /* WindowState.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C92649DF3041CBBC0058641B /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C9697E5530406F970025F8F3 /* WindowStateStore.swift */,
+				C92649D83041BF330058641B /* ShareSheetPresenter.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C92649E03041CBBC0058641B /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				C92649D63041B7AC0058641B /* NSPasteboard+Image.swift */,
+				C92649DA3041C1C50058641B /* Animation+ReduceMotion.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		C92649E13041CBC00058641B /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */,
+				C9697E57304088F10025F8F3 /* FocusedSlideshowWindow.swift */,
+			);
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

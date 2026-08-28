@@ -12,6 +12,11 @@ struct SlideshowApp: App {
     @Environment(\.openWindow) private var openWindow
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @FocusedValue(\.slideshowWindow) private var slideshowWindow
+    // Shared with SlideView via the same @AppStorage keys, so a menu
+    // toggle here and the in-slideshow state stay in sync automatically —
+    // no FocusedValue plumbing needed for these two specifically.
+    @AppStorage("showMetadata") private var showMetadata = true
+    @AppStorage("autoMode") private var autoMode = true
 
     init() {
         // Multiple Slideshow windows are fine; the native window-tabbing UI
@@ -49,6 +54,17 @@ struct SlideshowApp: App {
                 .keyboardShortcut("o", modifiers: .command)
             }
 
+            // Not slideshow-specific — toggling full screen is valid for
+            // the picker window too — so it lives outside "Slideshow"
+            // below. Cmd+F is unusual (the system standard is
+            // Cmd+Ctrl+F), but confirmed intentional.
+            CommandGroup(after: .toolbar) {
+                Button("Toggle Full Screen") {
+                    NSApplication.shared.keyWindow?.toggleFullScreen(nil)
+                }
+                .keyboardShortcut("f", modifiers: .command)
+            }
+
             CommandMenu("Slideshow") {
                 Button("Continue") {
                     slideshowWindow?.startAtCurrent()
@@ -61,6 +77,52 @@ struct SlideshowApp: App {
                 }
                 .keyboardShortcut(.return, modifiers: .command)
                 .disabled(slideshowWindow?.canStartSlideshow != true)
+
+                Divider()
+
+                // Deliberately not CommandGroup(replacing: .pasteboard):
+                // that placement's Cmd+C is validated against the classic
+                // copy(_:) responder-chain selector, which nothing in this
+                // app implements — it stayed stubbornly disabled even
+                // with .disabled(false) set explicitly. A plain custom
+                // command here, same as the four below it, isn't tied to
+                // that selector and works normally.
+                Button("Copy Image") {
+                    slideshowWindow?.copyImage()
+                }
+                .keyboardShortcut("c", modifiers: .command)
+                .disabled(slideshowWindow?.isSlideshowRunning != true)
+
+                Divider()
+
+                // Bare (unmodified) shortcuts, matching SlideView's
+                // existing in-slideshow key handling exactly — a menu
+                // shortcut is matched before a focused view's onKeyPress,
+                // so these are now the one place M/A/?/reset-zoom are
+                // actually handled, not a duplicate of it.
+                Button("Toggle Metadata") {
+                    showMetadata.toggle()
+                }
+                .keyboardShortcut("m", modifiers: [])
+                .disabled(slideshowWindow?.isSlideshowRunning != true)
+
+                Button("Toggle Auto Mode") {
+                    autoMode.toggle()
+                }
+                .keyboardShortcut("a", modifiers: [])
+                .disabled(slideshowWindow?.isSlideshowRunning != true)
+
+                Button("Toggle Help Overlay") {
+                    slideshowWindow?.toggleHelp()
+                }
+                .keyboardShortcut("?", modifiers: [])
+                .disabled(slideshowWindow?.isSlideshowRunning != true)
+
+                Button("Reset Zoom") {
+                    slideshowWindow?.resetZoom()
+                }
+                .keyboardShortcut("=", modifiers: [])
+                .disabled(slideshowWindow?.isSlideshowRunning != true)
             }
         }
 

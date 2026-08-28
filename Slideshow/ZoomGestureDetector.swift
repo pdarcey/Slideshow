@@ -39,4 +39,22 @@ class ZoomGestureDetector: NSView {
         super.magnify(with: event)
         onMagnify?(event.magnification)
     }
+
+    /// Right-clicks are declined outright (returns `nil`), rather than
+    /// handled with another `on...` callback like scroll/magnify: SwiftUI's
+    /// `.contextMenu` is resolved through this same classic
+    /// `rightMouseDown`/`menu(for:)` hit-testing path, unlike `.gesture()`/
+    /// `.onTapGesture()` (tap-to-advance, drag-to-pan), which apparently
+    /// aren't blocked by this view sitting on top and already work fine
+    /// without any override here. Declining lets AppKit's hit-test
+    /// continue past this view to the `.contextMenu` on the slide image
+    /// underneath, instead of silently swallowing the right-click the same
+    /// way it silently swallowed magnify events before that override
+    /// existed.
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        if let event = NSApp.currentEvent, event.type == .rightMouseDown || event.type == .rightMouseUp {
+            return nil
+        }
+        return super.hitTest(point)
+    }
 }

@@ -17,5 +17,9 @@ import SwiftUI
 struct Slide: Identifiable {
     let imageName: String
     let image: Image
+    /// The slide's source file, for actions that need a real file
+    /// reference rather than already-decoded image content — copying to
+    /// the pasteboard, revealing in Finder, sharing.
+    let url: URL
     let id: UUID = UUID()
 }

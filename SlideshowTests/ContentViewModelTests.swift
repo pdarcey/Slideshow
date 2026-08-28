@@ -80,6 +80,14 @@ final class ContentViewModelTests {
         #expect(viewModel.index == 0)
     }
 
+    @Test func loadingAFolderSetsEachSlidesURLToItsRealLocation() throws {
+        try writeTestImage(named: "a.png")
+
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(viewModel.images.map(\.url) == [tempDirectory.appending(path: "a.png")])
+    }
+
     @Test func loadingAFolderIgnoresUnsupportedFileExtensions() throws {
         try writeTestImage(named: "photo.png")
         try "not an image".write(to: tempDirectory.appending(path: "notes.txt"), atomically: true, encoding: .utf8)

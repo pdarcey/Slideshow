@@ -10,7 +10,14 @@ import SwiftUI
 struct ContentView: View {
     @State private var viewModel = ContentView.ViewModel()
     @State private var slideShowIsRunning = false
-    @State private var startIndex = 0
+    /// These four are owned here, not by `SlideView`, so app-level
+    /// `.commands` (which live outside the view hierarchy and can't reach
+    /// a window's local `@State` directly) can read/drive them via
+    /// `FocusedSlideshowWindow` — see that type and `SlideshowApp`.
+    @State private var currentImageIndex = 0
+    @State private var showHelp = false
+    @State private var scale: CGFloat = 1
+    @State private var offset: CGSize = .zero
     @Environment(\.openWindow) private var openWindow
     @Environment(\.appearsActive) private var appearsActive
     @State private var window: NSWindow?
@@ -28,9 +35,14 @@ struct ContentView: View {
             if slideShowIsRunning {
                 SlideView(
                     slides: viewModel.images,
-                    currentImage: startIndex,
+                    currentImage: $currentImageIndex,
                     slideshowIsRunning: $slideShowIsRunning,
+                    showHelp: $showHelp,
+                    scale: $scale,
+                    offset: $offset,
                     namespace: heroNamespace,
+                    onCopyImage: copyImage,
+                    shareableURL: shareableCopy,
                     onEnd: { lastDisplayedIndex in
                         viewModel.selectSlide(at: lastDisplayedIndex)
                     }
@@ -49,7 +61,15 @@ struct ContentView: View {
             viewModel: viewModel,
             isSlideshowRunning: slideShowIsRunning,
             startAtCurrent: startAtCurrent,
-            restartFromBeginning: restartFromBeginning
+            restartFromBeginning: restartFromBeginning,
+            toggleHelp: { showHelp.toggle() },
+            resetZoom: {
+                withAnimation {
+                    scale = 1
+                    offset = .zero
+                }
+            },
+            copyImage: copyCurrentImage
         ))
         .onAppear {
             // Order matters: bootstrap/pending-consumption run before
@@ -103,20 +123,88 @@ struct ContentView: View {
     /// picker screen. Shared by the "Start" button and the "Continue" menu
     /// command/shortcut, which are the same action.
     private func startAtCurrent() {
-        startIndex = viewModel.index
-        withAnimation {
-            slideShowIsRunning = true
-        }
+        beginSlideshow(at: viewModel.index)
     }
 
     /// Starts the slideshow from the first image, regardless of what's
     /// currently selected. Shared by the "Re-start from Beginning" button
     /// and its matching menu command/shortcut.
     private func restartFromBeginning() {
-        startIndex = 0
+        beginSlideshow(at: 0)
+    }
+
+    /// Shared by `startAtCurrent()`/`restartFromBeginning()`: resets
+    /// zoom/pan/Help to their defaults before showing `SlideView` — since
+    /// that state now lives here rather than in `SlideView` itself, it no
+    /// longer resets for free just by that view being torn down and
+    /// recreated each time a slideshow starts.
+    private func beginSlideshow(at index: Int) {
+        currentImageIndex = index
+        scale = 1
+        offset = .zero
+        showHelp = false
         withAnimation {
             slideShowIsRunning = true
         }
+    }
+
+    /// Copies the currently displayed slide's image + file URL to the
+    /// pasteboard. Backs both the app-level Cmd+C command (via
+    /// `FocusedSlideshowWindow`) and `SlideView`'s own context-menu "Copy
+    /// Image" (passed down as a closure, rather than `SlideView` writing
+    /// to the pasteboard directly) — both need `withFolderAccess` below,
+    /// which only `ContentView` can provide via `viewModel.bookmarkData`.
+    private func copyCurrentImage() {
+        guard viewModel.images.indices.contains(currentImageIndex) else { return }
+        copyImage(viewModel.images[currentImageIndex].url)
+    }
+
+    /// As `copyCurrentImage()`, but for an arbitrary slide URL — what
+    /// `SlideView`'s context menu actually calls, since it already has
+    /// the specific slide in scope there.
+    private func copyImage(_ url: URL) {
+        withFolderAccess {
+            NSPasteboard.general.writeImage(at: url)
+        }
+    }
+
+    /// A safe-to-share copy of a slide's image, in the temp directory
+    /// (always accessible, no security scoping needed). `ShareLink`'s
+    /// Share Sheet lifetime is indeterminate and asynchronous — far
+    /// longer than `withFolderAccess`'s synchronous access window could
+    /// ever cover — so sharing the original file's URL directly isn't an
+    /// option for a folder whose access came from a resolved bookmark.
+    /// Falls back to the original URL if the copy fails for any reason.
+    private func shareableCopy(of url: URL) -> URL {
+        var result = url
+        withFolderAccess {
+            guard let data = try? Data(contentsOf: url) else { return }
+            let candidate = URL.temporaryDirectory.appending(path: url.lastPathComponent)
+            if (try? data.write(to: candidate)) != nil {
+                result = candidate
+            }
+        }
+        return result
+    }
+
+    /// Re-resolves the loaded folder's bookmark and briefly re-opens
+    /// security-scoped access around `body`, mirroring what
+    /// `resume(from:)` already does for the initial load. Needed here
+    /// because `getImagesAtURL` only loads image data once, eagerly —
+    /// its own access window (opened by `resume(from:)`, for a restored
+    /// window) closes immediately afterwards, long before a user gets
+    /// around to actually copying or sharing an image.
+    private func withFolderAccess(_ body: () -> Void) {
+        guard let bookmarkData = viewModel.bookmarkData else { return }
+        var isStale = false
+        guard let folderURL = try? URL(
+            resolvingBookmarkData: bookmarkData,
+            options: [.withSecurityScope],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ), folderURL.startAccessingSecurityScopedResource() else { return }
+        defer { folderURL.stopAccessingSecurityScopedResource() }
+        body()
     }
 
     /// Captures this view's own hosting window the first time it's known to

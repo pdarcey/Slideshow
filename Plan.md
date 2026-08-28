@@ -62,22 +62,45 @@
     (briefly) whichever slide is showing when it ends, false for every ordinary navigation in between
     (every other slide gets a unique per-slide id instead, an inert no-op). Also extracted a shared
     `advanceSlide()` helper, deduplicating three near-identical "advance or end" blocks.
+11. Stage 10 (menu-bar & window integration):
+    - Cmd-F toggles full screen for the frontmost window (`CommandGroup(after: .toolbar)`).
+    - Metadata/Auto Mode/Help/Reset Zoom got menu equivalents in a new "Slideshow" menu section, using
+      the same bare M/A/?/= shortcuts as before (confirmed with Paul — a menu shortcut is matched
+      before a focused view's `onKeyPress`, so the old bare-key handlers in `SlideView` for these four
+      became dead code and were removed). Required lifting `currentImage`/`showHelp`/`scale`/`offset`
+      from `SlideView`'s local `@State` up to `ContentView` as `@Binding`s, since app-level `.commands`
+      can't reach a child view's local state — `FocusedSlideshowWindow` gained `toggleHelp`/
+      `resetZoom`/`copyImage` closures for this.
+    - `Slide` gained a `url` field. Context menu (Copy Image/Reveal in Finder/Share) added to the
+      displayed image; Cmd+C added via a plain command in the "Slideshow" menu rather than
+      `CommandGroup(replacing: .pasteboard)` — that placement ties Cmd+C to the classic `copy(_:)`
+      responder-chain selector, which nothing in this app implements, and it stayed disabled even with
+      `.disabled(false)` set explicitly.
+    - Two real fixes needed mid-stage: (1) right-click did nothing at first — `.contextMenu` resolves
+      through classic `rightMouseDown`/`menu(for:)` hit-testing, unlike `.gesture()`/`.onTapGesture()`
+      (which already worked fine sitting under `ZoomGestureDetector`'s overlay) — fixed with a
+      `hitTest(_:)` override on that same NSView declining right-clicks outright, so AppKit's hit-test
+      falls through to the context menu underneath. (2) Copy/Share both read the file's actual bytes,
+      unlike Reveal in Finder (which just hands a path to Finder, a separate process) — and the
+      security-scoped access `getImagesAtURL` used for the original eager load had long since closed
+      by the time either was tried. Fixed with a new `ContentView.withFolderAccess(_:)`, re-resolving
+      the folder's stored bookmark on demand (mirroring what `resume(from:)` already does at launch);
+      Share additionally copies to the temp directory first, since the Share Sheet's lifetime is
+      async/indeterminate — far longer than a synchronous re-scoped access window can cover.
+    - A third, cosmetic fix: `ShareLink`'s automatic popover positioning placed the Share Sheet
+      off-screen (and, being modal, stuck there) when the window was full-screen. Replaced with a
+      plain button driving `NSSharingServicePicker` directly, anchored at the mouse pointer via a new
+      `ShareSheetPresenter`.
 
 All merged to `main` as of 2026-08-28.
 
 ## Next stages: confirmed order
 
-The remaining Clarity backlog (6 outstanding issues), grouped by what touches the same code and what
+The remaining Clarity backlog (2 outstanding issues), grouped by what touches the same code and what
 depends on what, confirmed with Paul 2026-08-28:
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
 (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
-
-### Stage 10: Menu-bar & window integration
-- Cmd-F full-screen toggle.
-- Menu equivalents for Metadata/Auto Mode/Help/Reset Zoom (needs lifting some `SlideView` local
-  `@State` to focused values, via `FocusedSlideshowWindow`).
-- Context menu / Copy / Reveal in Finder / Share for the displayed image.
 
 ### Stage 11: Accessibility audit
 - No VoiceOver support anywhere in the app. Deliberately scheduled *after* Stages 8–10, since those

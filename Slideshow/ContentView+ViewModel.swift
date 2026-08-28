@@ -150,7 +150,7 @@ extension ContentView {
             var loadedSlides: [Slide] = []
             for url in sortedImages {
                 guard let nsImage = NSImage(contentsOfFile: url.path) else { break }
-                loadedSlides.append(Slide(imageName: url.lastPathComponent, image: Image(nsImage: nsImage)))
+                loadedSlides.append(Slide(imageName: url.lastPathComponent, image: Image(nsImage: nsImage), url: url))
             }
 
             images = loadedSlides

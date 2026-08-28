@@ -11,12 +11,27 @@ import Combine
 struct SlideView: View {
     var slides: [Slide]
     var autoModeInterval: Double
-    @State var currentImage: Int = 0
+    /// Owned by `ContentView`, not local: the app-level Cmd+C/Reveal-in-
+    /// Finder/Copy actions and menu commands need to know which slide is
+    /// live right now, and a parent view can't reach into a child's local
+    /// `@State` from outside — see `ContentView`.
+    @Binding var currentImage: Int
     @Binding var slideshowIsRunning: Bool
     /// Called with the last-displayed slide's index whenever the slideshow
     /// ends (Esc, or reaching the last slide), so the caller can make the
     /// picker screen's hero image reflect wherever the user left off.
     var onEnd: (Int) -> Void = { _ in }
+    /// Copies the given slide's image to the pasteboard. Handled by
+    /// `ContentView`, not here: it needs `viewModel.bookmarkData` to
+    /// briefly re-open security-scoped access first, since the original
+    /// access window `getImagesAtURL` loaded these images under may
+    /// already be long closed by the time a user copies one.
+    var onCopyImage: (URL) -> Void = { _ in }
+    /// A safe-to-share copy of the given slide's file (see `ContentView`
+    /// for why sharing the original URL directly isn't reliable for a
+    /// resumed window's folder). Also `ContentView`-owned, same reason as
+    /// `onCopyImage`.
+    var shareableURL: (URL) -> URL = { $0 }
     /// Shared with `DefaultView`'s hero image (via `ContentView`), so the
     /// current slide morphs from/into the hero image when the slideshow
     /// starts/ends, rather than just cutting or crossfading. See
@@ -31,16 +46,23 @@ struct SlideView: View {
     /// between consecutive slides too (replacing the plain crossfade with
     /// odd grow/slide artifacts), not just at the DefaultView boundary.
     @State private var isHeroTransitionSlide = true
+    /// Backs the context menu's "Share…" — see `ShareSheetPresenter`.
+    @State private var sharePresenter = ShareSheetPresenter()
     @FocusState private var focussed: Bool
     @AppStorage("showMetadata") var showMetadata = true
-    @State private var scale: CGFloat = 1
-    @State private var offset: CGSize = .zero
+    /// `scale`/`offset` are also `ContentView`-owned, for the same reason
+    /// `currentImage` is: the Reset Zoom menu command needs to reach them
+    /// from outside this view.
+    @Binding var scale: CGFloat
+    @Binding var offset: CGSize
     @State private var dragStartOffset: CGSize = .zero
     @State private var containerSize: CGSize = .zero
     private let minScale: CGFloat = 1
     private let maxScale: CGFloat = 5
     private let zoomStep: CGFloat = 0.25
-    @State private var showHelp = false
+    /// Also `ContentView`-owned, so the Toggle Help menu command can reach
+    /// it — same reasoning as `currentImage`/`scale`/`offset`.
+    @Binding var showHelp: Bool
     @Environment(\.appearsActive) private var appearsActive
     @State private var window: NSWindow?
     @AppStorage("slideTransition") private var slideTransition: SlideTransition = .crossFade
@@ -54,16 +76,26 @@ struct SlideView: View {
     init(
         slides: [Slide],
         autoModeInterval: Double = 3.0,
-        currentImage: Int,
+        currentImage: Binding<Int>,
         slideshowIsRunning: Binding<Bool>,
+        showHelp: Binding<Bool>,
+        scale: Binding<CGFloat>,
+        offset: Binding<CGSize>,
         namespace: Namespace.ID,
+        onCopyImage: @escaping (URL) -> Void = { _ in },
+        shareableURL: @escaping (URL) -> URL = { $0 },
         onEnd: @escaping (Int) -> Void = { _ in }
     ) {
         self.slides = slides
         self.autoModeInterval = autoModeInterval
-        self.currentImage = currentImage
+        self._currentImage = currentImage
         self._slideshowIsRunning = slideshowIsRunning
+        self._showHelp = showHelp
+        self._scale = scale
+        self._offset = offset
         self.namespace = namespace
+        self.onCopyImage = onCopyImage
+        self.shareableURL = shareableURL
         self.onEnd = onEnd
         self.timer = Timer.publish(every: autoModeInterval, on: .main, in: .common).autoconnect()
     }
@@ -87,6 +119,17 @@ struct SlideView: View {
                     .id(slide.id)
                     .transition(slideTransition == .crossFade ? .opacity : .identity)
                     .matchedGeometryEffect(id: isHeroTransitionSlide ? "hero" : "slide-\(slide.id)", in: namespace)
+                    .contextMenu {
+                        Button("Copy Image", systemImage: "doc.on.doc") {
+                            onCopyImage(slide.url)
+                        }
+                        Button("Reveal in Finder", systemImage: "folder") {
+                            NSWorkspace.shared.activateFileViewerSelecting([slide.url])
+                        }
+                        Button("Share…", systemImage: "square.and.arrow.up") {
+                            presentShareSheet(for: shareableURL(slide.url))
+                        }
+                    }
 
                 if showMetadata {
                     MetadataTextView(text: "\(currentImage + 1) of \(slides.count): \(slide.imageName.withoutExtension())")
@@ -148,30 +191,15 @@ struct SlideView: View {
                 return .handled
             }
         })
-        .onKeyPress(keys: ["m", "M"], action: { _ in
-            // Show/Hide metadata (i.e. "1 of 100: <filename>")
-            withAnimation {
-                showMetadata.toggle()
-                return .handled
-            }
-        })
-        .onKeyPress(keys: ["a", "A"], action: { _ in
-            // Toggle autoMode
-            withAnimation {
-                autoMode.toggle()
-                return .handled
-            }
-        })
         .onKeyPress(keys: ["=", "+"], action: { press in
-            // Bare "=": reset scale/offset to 100%. Cmd+= (or Cmd++, on
-            // keyboards/layouts that send "+" directly): zoom in a step.
-            guard press.modifiers.contains(.command) || press.key == "=" else { return .ignored }
+            // Cmd+= (or Cmd++, on keyboards/layouts that send "+" directly):
+            // zoom in a step. Bare "=" (reset to 100%) is a menu-bar
+            // command now (see SlideshowApp) rather than handled here —
+            // menu shortcuts intercept before a view's onKeyPress ever
+            // sees them, so a duplicate case here would just be dead code.
+            guard press.modifiers.contains(.command) else { return .ignored }
             withAnimation {
-                if press.modifiers.contains(.command) {
-                    setScale(scale + zoomStep)
-                } else {
-                    resetZoom()
-                }
+                setScale(scale + zoomStep)
             }
             return .handled
         })
@@ -182,13 +210,6 @@ struct SlideView: View {
                 setScale(scale - zoomStep)
             }
             return .handled
-        })
-        .onKeyPress(keys: ["?"], action: { _ in
-            // Toggle Help display
-            withAnimation {
-                showHelp.toggle()
-                return .handled
-            }
         })
         .onReceive(timer) { _ in
             // Automode progress
@@ -247,11 +268,6 @@ struct SlideView: View {
         )
     }
 
-    private func resetZoom() {
-        scale = minScale
-        offset = .zero
-    }
-
     /// Shows the next slide, or ends the slideshow if this was the last
     /// one. Shared by the right-arrow/space/return key handler, the
     /// auto-mode timer, and tap-to-advance — all three do exactly this.
@@ -278,6 +294,17 @@ struct SlideView: View {
         onEnd(currentImage)
         slideshowIsRunning = false
         exitFullScreen()
+    }
+
+    /// Shows the Share Sheet anchored at the current mouse position rather
+    /// than `ShareLink`'s automatic positioning, which places the popover
+    /// off-screen (and, since it's still modally presented, stuck there)
+    /// when this window is full-screen — see `ShareSheetPresenter`.
+    private func presentShareSheet(for url: URL) {
+        guard let window, let contentView = window.contentView else { return }
+        let locationInWindow = window.convertPoint(fromScreen: NSEvent.mouseLocation)
+        let anchor = NSRect(origin: locationInWindow, size: .zero)
+        sharePresenter.present(url, relativeTo: anchor, of: contentView, preferredEdge: .minY)
     }
 
     /// Captures this view's own hosting window the first time it's known to

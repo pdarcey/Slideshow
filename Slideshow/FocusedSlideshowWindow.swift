@@ -18,6 +18,13 @@ struct FocusedSlideshowWindow {
     var isSlideshowRunning: Bool
     var startAtCurrent: () -> Void
     var restartFromBeginning: () -> Void
+    /// Toggles the in-slideshow Help overlay (`?`).
+    var toggleHelp: () -> Void
+    /// Resets zoom/pan to their defaults (`=`).
+    var resetZoom: () -> Void
+    /// Copies the currently displayed slide's image + file URL to the
+    /// pasteboard (Cmd+C).
+    var copyImage: () -> Void
 
     /// Whether "Continue"/"Re-start from Beginning" have anything to act
     /// on — matches the same condition `DefaultView` uses to show its

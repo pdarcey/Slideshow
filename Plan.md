@@ -91,22 +91,44 @@
       off-screen (and, being modal, stuck there) when the window was full-screen. Replaced with a
       plain button driving `NSSharingServicePicker` directly, anchored at the mouse pointer via a new
       `ShareSheetPresenter`.
+12. Stage 11 (accessibility audit): ran the `swiftui-accessibility-auditor` skill across the whole app;
+    findings graded P0-P2, all implemented.
+    - P0: `SlideView`'s displayed photo is now the one VoiceOver-actionable element for the whole
+      slideshow — labeled with filename + position, `.isButton` trait, default action = advance
+      (matches tap-to-advance), plus "Previous Slide"/"End Slideshow" as VoiceOver rotor actions (a
+      new `goToPreviousSlide()` was extracted alongside the existing `advanceSlide()` for this).
+      `MetadataTextView`'s overlay and the invisible `ScrollZoomView` gesture layer are now
+      `.accessibilityHidden` to avoid duplicate/empty announcements. `OutlineText` (nine overlapping
+      copies of the same string, for its outline effect) now collapses to one accessibility element
+      with one label, instead of announcing nine times.
+    - P1: new `Animation+ReduceMotion.swift` (`withOptionalAnimation`, a drop-in `withAnimation`
+      replacement) wired into every animated transition across `SlideView`/`DefaultView`/`ContentView`
+      — slide crossfades, zoom, the hero morph, the drag-highlight — so Reduce Motion cuts instantly
+      instead of animating. `DefaultView`'s hero image also gained a filename-based accessibility
+      label.
+    - P2: `AboutView`'s app icon marked `.accessibilityHidden(true)` (redundant with adjacent
+      "Slideshow" text). `SettingsView`'s two sliders switched from an embedded-value label to a
+      static label + `.accessibilityValue`.
+    - Investigated a real platform limitation while verifying: the app doesn't appear in System
+      Settings' per-app Text Size list (Accessibility → Display → Text Size). Confirmed via Apple
+      Developer Forums (including a DTS engineer reply) this is a currently-curated allowlist of
+      Apple's own apps only — no Info.plist key, entitlement, or API exists for a third-party app to
+      register, regardless of correct semantic SwiftUI font usage (which this app already has). Not
+      fixable from here; noted and dropped.
+    - Confirmed live by Paul, including a real regression caught along the way: the Settings sliders'
+      value text (e.g. "3.0 seconds") isn't visibly rendered by `Slider`'s label closure on macOS at
+      all — Paul confirmed this is an acceptable, out-of-our-control platform quirk rather than
+      something to chase further.
 
 All merged to `main` as of 2026-08-28.
 
 ## Next stages: confirmed order
 
-The remaining Clarity backlog (2 outstanding issues), grouped by what touches the same code and what
+The remaining Clarity backlog (1 outstanding issue), grouped by what touches the same code and what
 depends on what, confirmed with Paul 2026-08-28:
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
 (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
-
-### Stage 11: Accessibility audit
-- No VoiceOver support anywhere in the app. Deliberately scheduled *after* Stages 8–10, since those
-  add new interactive surfaces (gestures, menu commands, context menu) that should get accessibility
-  support built in the first time rather than retrofitted twice. Run the
-  `swiftui-accessibility-auditor` skill across the whole app here.
 
 ### Stage 12: Memory footprint
 - `ContentView.ViewModel.getImagesAtURL` loads every image in a folder eagerly into memory via

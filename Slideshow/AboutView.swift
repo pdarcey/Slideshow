@@ -31,6 +31,9 @@ struct AboutView: View {
                 .resizable().scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 .shadow(radius: 3)
+                // Purely decorative — "Slideshow" right next to it already
+                // conveys the app's identity to VoiceOver.
+                .accessibilityHidden(true)
 //                .overlay(
 //                    RoundedRectangle(cornerRadius: 15)
 //                        .stroke(Color.white, lineWidth: 3)

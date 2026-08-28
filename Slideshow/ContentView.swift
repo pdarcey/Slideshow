@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var offset: CGSize = .zero
     @Environment(\.openWindow) private var openWindow
     @Environment(\.appearsActive) private var appearsActive
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var window: NSWindow?
     /// Shared between `DefaultView`'s hero image and `SlideView`'s current
     /// slide, so starting/ending a slideshow morphs the photo between the
@@ -64,7 +65,7 @@ struct ContentView: View {
             restartFromBeginning: restartFromBeginning,
             toggleHelp: { showHelp.toggle() },
             resetZoom: {
-                withAnimation {
+                withOptionalAnimation(reduceMotion: reduceMotion) {
                     scale = 1
                     offset = .zero
                 }
@@ -143,7 +144,7 @@ struct ContentView: View {
         scale = 1
         offset = .zero
         showHelp = false
-        withAnimation {
+        withOptionalAnimation(reduceMotion: reduceMotion) {
             slideShowIsRunning = true
         }
     }

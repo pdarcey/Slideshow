@@ -24,6 +24,7 @@
 		C92649D530416A3D0058641B /* SlideTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D430416A3D0058641B /* SlideTransition.swift */; };
 		C92649D73041B7AC0058641B /* NSPasteboard+Image.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D63041B7AC0058641B /* NSPasteboard+Image.swift */; };
 		C92649D93041BF330058641B /* ShareSheetPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D83041BF330058641B /* ShareSheetPresenter.swift */; };
+		C92649DB3041C1C50058641B /* Animation+ReduceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649DA3041C1C50058641B /* Animation+ReduceMotion.swift */; };
 		C9697E49303FFCA90025F8F3 /* Slide.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E48303FFCA90025F8F3 /* Slide.swift */; };
 		C9697E4B303FFCB80025F8F3 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */; };
 		C9697E4D303FFD8D0025F8F3 /* ContentViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */; };
@@ -78,6 +79,7 @@
 		C92649D430416A3D0058641B /* SlideTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideTransition.swift; sourceTree = "<group>"; };
 		C92649D63041B7AC0058641B /* NSPasteboard+Image.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSPasteboard+Image.swift"; sourceTree = "<group>"; };
 		C92649D83041BF330058641B /* ShareSheetPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetPresenter.swift; sourceTree = "<group>"; };
+		C92649DA3041C1C50058641B /* Animation+ReduceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Animation+ReduceMotion.swift"; sourceTree = "<group>"; };
 		C9697E48303FFCA90025F8F3 /* Slide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slide.swift; sourceTree = "<group>"; };
 		C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel.swift"; sourceTree = "<group>"; };
 		C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModelTests.swift; sourceTree = "<group>"; };
@@ -171,6 +173,7 @@
 				C92649D430416A3D0058641B /* SlideTransition.swift */,
 				C92649D63041B7AC0058641B /* NSPasteboard+Image.swift */,
 				C92649D83041BF330058641B /* ShareSheetPresenter.swift */,
+				C92649DA3041C1C50058641B /* Animation+ReduceMotion.swift */,
 			);
 			path = Slideshow;
 			sourceTree = "<group>";
@@ -380,6 +383,7 @@
 				C9697E5030400CB90025F8F3 /* AppCoordinator.swift in Sources */,
 				C90BA3A72A97841900A006DC /* ContentView.swift in Sources */,
 				C9697E5230400CC00025F8F3 /* AppDelegate.swift in Sources */,
+				C92649DB3041C1C50058641B /* Animation+ReduceMotion.swift in Sources */,
 				C92649D130416A350058641B /* OutlineText.swift in Sources */,
 				C9B0EC2B2E48B002006081A4 /* ScrollZoomView.swift in Sources */,
 				C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */,

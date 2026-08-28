@@ -19,9 +19,9 @@ struct SettingsView: View {
             Section("Slideshow") {
                 Toggle("Auto Mode", isOn: $autoMode)
                 Slider(value: $interval, in: 0...5, step: 0.1) {
-                    Text("Advance slides every: \(interval.formatted(.number.precision(.fractionLength(1)))) seconds")
-                        .monospacedDigit()
+                    Text("Slide interval")
                 }
+                .accessibilityValue("\(interval.formatted(.number.precision(.fractionLength(1)))) seconds")
                 Toggle("Show Metadata", isOn: $showMetadata)
             }
 
@@ -32,9 +32,9 @@ struct SettingsView: View {
                     }
                 }
                 Slider(value: $transitionDuration, in: 0.1...2.0, step: 0.05) {
-                    Text("Transition speed: \(transitionDuration.formatted(.number.precision(.fractionLength(2)))) seconds")
-                        .monospacedDigit()
+                    Text("Transition speed")
                 }
+                .accessibilityValue("\(transitionDuration.formatted(.number.precision(.fractionLength(2)))) seconds")
                 .disabled(slideTransition == .cut)
             }
         }

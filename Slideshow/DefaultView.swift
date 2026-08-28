@@ -17,6 +17,14 @@ struct DefaultView: View {
     var onRestartFromBeginning: () -> Void
 
     @State private var dragOver = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// VoiceOver description for the hero image — its filename, since
+    /// there's otherwise no text on screen conveying what's selected.
+    private var selectedImageAccessibilityLabel: String {
+        guard viewModel.images.indices.contains(viewModel.index) else { return "Selected image" }
+        return viewModel.images[viewModel.index].imageName.withoutExtension()
+    }
 
     var body: some View {
         VStack {
@@ -60,6 +68,7 @@ struct DefaultView: View {
                     .shadow(radius: 8)
                     .padding(.bottom)
                     .matchedGeometryEffect(id: "hero", in: namespace)
+                    .accessibilityLabel(selectedImageAccessibilityLabel)
             }
 
             HStack {
@@ -122,7 +131,7 @@ struct DefaultView: View {
                     .padding(4)
             }
         }
-        .animation(.easeInOut(duration: 0.15), value: dragOver)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.15), value: dragOver)
     }
 }
 

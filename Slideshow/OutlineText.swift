@@ -29,6 +29,11 @@ struct OutlineText: View {
             // White text on top
             Text(text).foregroundStyle(.white)
         }
+        // Nine overlapping copies of the same string, for the outline
+        // effect above — without this, VoiceOver announces `text` up to
+        // nine times in a row when it reaches this element.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
     }
 }
 

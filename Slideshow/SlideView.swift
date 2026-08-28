@@ -64,6 +64,7 @@ struct SlideView: View {
     /// it — same reasoning as `currentImage`/`scale`/`offset`.
     @Binding var showHelp: Bool
     @Environment(\.appearsActive) private var appearsActive
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var window: NSWindow?
     @AppStorage("slideTransition") private var slideTransition: SlideTransition = .crossFade
     @AppStorage("transitionDuration") private var transitionDuration: Double = 0.35
@@ -117,7 +118,7 @@ struct SlideView: View {
                     .scaleEffect(scale)
                     .offset(offset)
                     .id(slide.id)
-                    .transition(slideTransition == .crossFade ? .opacity : .identity)
+                    .transition(reduceMotion ? .identity : (slideTransition == .crossFade ? .opacity : .identity))
                     .matchedGeometryEffect(id: isHeroTransitionSlide ? "hero" : "slide-\(slide.id)", in: namespace)
                     .contextMenu {
                         Button("Copy Image", systemImage: "doc.on.doc") {
@@ -130,11 +131,40 @@ struct SlideView: View {
                             presentShareSheet(for: shareableURL(slide.url))
                         }
                     }
+                    // The image is the one VoiceOver-actionable element for
+                    // the whole slideshow interaction: its label folds in
+                    // what MetadataTextView shows visually (hidden below to
+                    // avoid a duplicate announcement), tap-to-advance
+                    // becomes its default (double-tap) action, and
+                    // previous/end are reachable via the VoiceOver rotor's
+                    // Actions menu — a reliable path for VoiceOver/Switch
+                    // Control users independent of raw arrow-key handling.
+                    .accessibilityLabel(
+                        "\(slide.imageName.withoutExtension()), slide \(currentImage + 1) of \(slides.count)"
+                    )
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction {
+                        withOptionalAnimation(.easeInOut(duration: transitionDuration), reduceMotion: reduceMotion) {
+                            advanceSlide()
+                        }
+                    }
+                    .accessibilityAction(named: "Previous Slide") {
+                        withOptionalAnimation(.easeInOut(duration: transitionDuration), reduceMotion: reduceMotion) {
+                            autoMode = false
+                            goToPreviousSlide()
+                        }
+                    }
+                    .accessibilityAction(named: "End Slideshow") {
+                        withOptionalAnimation(reduceMotion: reduceMotion) {
+                            endSlideshow()
+                        }
+                    }
 
                 if showMetadata {
                     MetadataTextView(text: "\(currentImage + 1) of \(slides.count): \(slide.imageName.withoutExtension())")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding()
+                        .accessibilityHidden(true)
                 }
 
                 if showHelp {
@@ -152,6 +182,7 @@ struct SlideView: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.clear)
+                .accessibilityHidden(true)
             }
         }
         .focusable()
@@ -168,28 +199,24 @@ struct SlideView: View {
         }
         .onKeyPress(.escape) {
             // User has hit Esc, cancel the slideshow
-            withAnimation {
+            withOptionalAnimation(reduceMotion: reduceMotion) {
                 endSlideshow()
-                return .handled
             }
+            return .handled
         }
         .onKeyPress(.leftArrow) {
-            withAnimation(.easeInOut(duration: transitionDuration)) {
+            withOptionalAnimation(.easeInOut(duration: transitionDuration), reduceMotion: reduceMotion) {
                 autoMode = false
-                if currentImage > 0 {
-                    // Show previous slide
-                    isHeroTransitionSlide = false
-                    currentImage -= 1
-                }
-                return .handled
+                goToPreviousSlide()
             }
+            return .handled
         }
         .onKeyPress(keys: [.space, .rightArrow, .return], action: { _ in
-            withAnimation(.easeInOut(duration: transitionDuration)) {
+            withOptionalAnimation(.easeInOut(duration: transitionDuration), reduceMotion: reduceMotion) {
                 autoMode = false
                 advanceSlide()
-                return .handled
             }
+            return .handled
         })
         .onKeyPress(keys: ["=", "+"], action: { press in
             // Cmd+= (or Cmd++, on keyboards/layouts that send "+" directly):
@@ -198,7 +225,7 @@ struct SlideView: View {
             // menu shortcuts intercept before a view's onKeyPress ever
             // sees them, so a duplicate case here would just be dead code.
             guard press.modifiers.contains(.command) else { return .ignored }
-            withAnimation {
+            withOptionalAnimation(reduceMotion: reduceMotion) {
                 setScale(scale + zoomStep)
             }
             return .handled
@@ -206,7 +233,7 @@ struct SlideView: View {
         .onKeyPress(keys: ["-"], action: { press in
             // Cmd-minus: zoom out a step. Bare "-" isn't bound to anything.
             guard press.modifiers.contains(.command) else { return .ignored }
-            withAnimation {
+            withOptionalAnimation(reduceMotion: reduceMotion) {
                 setScale(scale - zoomStep)
             }
             return .handled
@@ -215,13 +242,13 @@ struct SlideView: View {
             // Automode progress
             if autoMode {
                 guard !slides.isEmpty else { return }
-                withAnimation(.easeInOut(duration: transitionDuration)) {
+                withOptionalAnimation(.easeInOut(duration: transitionDuration), reduceMotion: reduceMotion) {
                     advanceSlide()
                 }
             }
         }
         .onTapGesture(perform: {
-            withAnimation(.easeInOut(duration: transitionDuration)) {
+            withOptionalAnimation(.easeInOut(duration: transitionDuration), reduceMotion: reduceMotion) {
                 advanceSlide()
             }
         })
@@ -270,7 +297,8 @@ struct SlideView: View {
 
     /// Shows the next slide, or ends the slideshow if this was the last
     /// one. Shared by the right-arrow/space/return key handler, the
-    /// auto-mode timer, and tap-to-advance — all three do exactly this.
+    /// auto-mode timer, tap-to-advance, and the image's default
+    /// accessibility action — all four do exactly this.
     private func advanceSlide() {
         if (currentImage + 1) < slides.count {
             isHeroTransitionSlide = false
@@ -278,6 +306,15 @@ struct SlideView: View {
         } else {
             endSlideshow()
         }
+    }
+
+    /// Shows the previous slide, if there is one — a no-op on the first
+    /// slide. Shared by the left-arrow key handler and the "Previous
+    /// Slide" accessibility action.
+    private func goToPreviousSlide() {
+        guard currentImage > 0 else { return }
+        isHeroTransitionSlide = false
+        currentImage -= 1
     }
 
     /// Stops the slideshow and exits full screen. Centralizes the sequence

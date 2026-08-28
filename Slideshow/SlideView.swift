@@ -13,6 +13,10 @@ struct SlideView: View {
     var autoModeInterval: Double
     @State var currentImage: Int = 0
     @Binding var slideshowIsRunning: Bool
+    /// Called with the last-displayed slide's index whenever the slideshow
+    /// ends (Esc, or reaching the last slide), so the caller can make the
+    /// picker screen's hero image reflect wherever the user left off.
+    var onEnd: (Int) -> Void = { _ in }
     @FocusState private var focussed: Bool
     @AppStorage("showMetadata") var showMetadata = true
     @State private var scale: CGFloat = 1
@@ -27,11 +31,18 @@ struct SlideView: View {
     @AppStorage("autoMode") var autoMode: Bool = true
     let timer: Publishers.Autoconnect<Timer.TimerPublisher>
 
-    init(slides: [Slide], autoModeInterval: Double = 3.0, currentImage: Int, slideshowIsRunning: Binding<Bool>) {
+    init(
+        slides: [Slide],
+        autoModeInterval: Double = 3.0,
+        currentImage: Int,
+        slideshowIsRunning: Binding<Bool>,
+        onEnd: @escaping (Int) -> Void = { _ in }
+    ) {
         self.slides = slides
         self.autoModeInterval = autoModeInterval
         self.currentImage = currentImage
         self._slideshowIsRunning = slideshowIsRunning
+        self.onEnd = onEnd
         self.timer = Timer.publish(every: autoModeInterval, on: .main, in: .common).autoconnect()
     }
 
@@ -170,6 +181,7 @@ struct SlideView: View {
     /// every "reached the last slide" / "user cancelled" path needs, so it's
     /// defined once instead of repeated at each call site.
     private func endSlideshow() {
+        onEnd(currentImage)
         slideshowIsRunning = false
         currentImage = 0
         exitFullScreen()

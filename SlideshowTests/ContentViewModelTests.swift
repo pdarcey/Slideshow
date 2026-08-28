@@ -179,6 +179,62 @@ final class ContentViewModelTests {
         #expect(viewModel.emptyReason == .notYetAttempted)
     }
 
+    // MARK: - folderName
+
+    @Test func successfulLoadSetsFolderNameToTheFoldersLastPathComponent() throws {
+        try writeTestImage(named: "photo.png")
+
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(viewModel.folderName == tempDirectory.lastPathComponent)
+    }
+
+    @Test func unreadableFolderLeavesFolderNameNil() {
+        viewModel.getImagesAtURL(tempDirectory.appending(path: "does-not-exist"))
+        #expect(viewModel.folderName == nil)
+    }
+
+    @Test func loadingAnEmptyFolderLeavesFolderNameNil() {
+        viewModel.getImagesAtURL(tempDirectory)
+        #expect(viewModel.folderName == nil)
+    }
+
+    // MARK: - selectSlide
+
+    @Test func selectSlideUpdatesIndex() throws {
+        try writeTestImage(named: "a.png")
+        try writeTestImage(named: "b.png")
+        try writeTestImage(named: "c.png")
+        viewModel.getImagesAtURL(tempDirectory)
+
+        viewModel.selectSlide(at: 2)
+
+        #expect(viewModel.index == 2)
+    }
+
+    @Test func selectSlideClampsAnOutOfBoundsIndex() throws {
+        try writeTestImage(named: "a.png")
+        try writeTestImage(named: "b.png")
+        viewModel.getImagesAtURL(tempDirectory)
+
+        viewModel.selectSlide(at: 99)
+
+        #expect(viewModel.index == 1)
+    }
+
+    @Test func selectSlideNotifiesOnStateChangedSoItPersistsAcrossARelaunch() throws {
+        try writeTestImage(named: "a.png")
+        try writeTestImage(named: "b.png")
+        viewModel.getImagesAtURL(tempDirectory)
+
+        var notified = false
+        viewModel.onStateChanged = { notified = true }
+        viewModel.selectSlide(at: 1)
+
+        #expect(notified)
+        #expect(viewModel.currentWindowState()?.selectedImageName == "b.png")
+    }
+
     // MARK: - currentWindowState / resume(from:)
 
     @Test func currentWindowStateIsNilBeforeAnySuccessfulLoad() {

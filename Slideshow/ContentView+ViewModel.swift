@@ -31,6 +31,10 @@ extension ContentView {
         private(set) var images: [Slide] = []
         private(set) var emptyReason: EmptyReason = .notYetAttempted
 
+        /// The loaded folder's name, so the window title can show which
+        /// folder this window is displaying. Nil whenever `images` is empty.
+        private(set) var folderName: String?
+
         /// A security-scoped bookmark for the currently-loaded folder, so
         /// this window's state can be persisted and restored across a
         /// relaunch. Refreshed on every successful load; nil whenever
@@ -78,7 +82,7 @@ extension ContentView {
             panel.canChooseFiles = true
             panel.allowedContentTypes = [.bmp, .jpeg, .png, .tiff, .gif, .heic]
             panel.allowsMultipleSelection = false
-            panel.prompt = "Start Slideshow"
+            panel.prompt = "Select"
             // Picking a single image (rather than its folder) works fine —
             // parseSelectedURL/getImagesAtURL already resolve it to that
             // image's position within its folder — but nothing else here
@@ -133,6 +137,7 @@ extension ContentView {
                 images = []
                 index = 0
                 bookmarkData = nil
+                folderName = nil
                 emptyReason = .accessDenied
                 onStateChanged?()
                 return
@@ -152,7 +157,9 @@ extension ContentView {
             if loadedSlides.isEmpty {
                 emptyReason = .noSupportedImages
                 bookmarkData = nil
+                folderName = nil
             } else {
+                folderName = folderURL.lastPathComponent
                 // Refreshed on every successful load, regardless of whether
                 // folderURL came from a fresh Powerbox grant or a resolved
                 // bookmark (resume(from:)) — this is what keeps a resumed
@@ -168,6 +175,17 @@ extension ContentView {
             } else {
                 index = 0
             }
+            onStateChanged?()
+        }
+
+        /// Updates which slide is "selected" without reloading anything —
+        /// used when a slideshow ends, so the picker screen's hero image
+        /// reflects wherever the user left off rather than resetting to
+        /// whatever was selected before the slideshow started. Notifies
+        /// `onStateChanged` so this survives a quit/relaunch, the same as
+        /// every other change to the persisted selection.
+        func selectSlide(at newIndex: Int) {
+            index = newIndex
             onStateChanged?()
         }
 
@@ -204,6 +222,7 @@ extension ContentView {
                 images = []
                 index = 0
                 bookmarkData = nil
+                folderName = nil
                 emptyReason = .previousFolderUnavailable
                 onStateChanged?()
                 return
@@ -213,6 +232,7 @@ extension ContentView {
                 images = []
                 index = 0
                 bookmarkData = nil
+                folderName = nil
                 emptyReason = .previousFolderUnavailable
                 onStateChanged?()
                 return

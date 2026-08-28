@@ -18,7 +18,14 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             if slideShowIsRunning {
-                SlideView(slides: viewModel.images, currentImage: startIndex, slideshowIsRunning: $slideShowIsRunning)
+                SlideView(
+                    slides: viewModel.images,
+                    currentImage: startIndex,
+                    slideshowIsRunning: $slideShowIsRunning,
+                    onEnd: { lastDisplayedIndex in
+                        viewModel.selectSlide(at: lastDisplayedIndex)
+                    }
+                )
             } else {
                 DefaultView(
                     viewModel: viewModel,
@@ -27,6 +34,7 @@ struct ContentView: View {
                 )
             }
         }
+        .navigationTitle(windowTitle)
         .focusedSceneValue(\.slideshowWindow, FocusedSlideshowWindow(
             viewModel: viewModel,
             isSlideshowRunning: slideShowIsRunning,
@@ -71,6 +79,14 @@ struct ContentView: View {
                 AppCoordinator.shared.closeEmptyWindows(excluding: viewModel)
             }
         }
+    }
+
+    /// This window's title: the loaded folder's name plus image count, so
+    /// multiple open windows are distinguishable, or "Slideshow" before
+    /// anything's been loaded.
+    private var windowTitle: String {
+        guard let folderName = viewModel.folderName else { return "Slideshow" }
+        return "\(folderName) (\(viewModel.images.count.formatted()) images)"
     }
 
     /// Starts the slideshow at whatever image is currently selected on the

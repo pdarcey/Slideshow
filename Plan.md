@@ -24,27 +24,29 @@
    `CFBundleVersion` bump from `git rev-list --count main` (`Scripts/update-build-number.sh`, run as
    the *last* build phase — this target's `GENERATE_INFOPLIST_FILE = YES` means a first-phase script
    can't influence generation regardless of ordering).
+7. Stage 6 (quick wins): fixed the About screen's focus-ring border (`.focusEffectDisabled()`) and the
+   Help screen's Light Mode legibility (adaptive colors instead of hardcoded white/outline text). Also
+   split `HelpView.swift`/`MetadataTextView.swift`/`ScrollZoomView.swift`/`Settings.swift` into
+   one-view-per-file, added Dark/Light previews where it made sense, and brought the whole project to
+   zero SwiftLint warnings under a new `.swiftlint.yml`.
+8. Stage 7 (ready-screen polish): fixed the file panel's "Start Slideshow" prompt (it only selects,
+   doesn't start) to "Select"; window title now shows folder name + image count
+   (`ContentView.ViewModel.folderName`, new); removed the now-redundant text label above the hero
+   image (and a vestigial unused `@SceneStorage` that only it read); hero image gets a rounded clip,
+   border, and shadow; the three ready-screen buttons are circular icon buttons with tooltips
+   (`.buttonBorderShape(.circle)`); "Select" is the accent-tinted default before a folder's loaded,
+   "Start" after; default window size is 1500×1500 (replacing a `.windowIdealPlacement` that filled
+   the whole display); ending a slideshow (`Esc` or reaching the last slide) now updates the hero
+   image to the last-displayed slide via a new `SlideView.onEnd` callback and
+   `ViewModel.selectSlide(at:)`, and persists that selection across a relaunch the same way every
+   other selection change does.
 
 All merged to `main` as of 2026-08-28.
 
 ## Next stages: confirmed order
 
-The remaining Clarity backlog (19 outstanding issues), grouped by what touches the same code and what
+The remaining Clarity backlog (9 outstanding issues), grouped by what touches the same code and what
 depends on what, confirmed with Paul 2026-08-28:
-
-### Stage 6: Quick wins (isolated bug fixes)
-- Fix the thick grey border around the link in the About screen.
-- Fix Help screen's unreadable text in Light Mode.
-
-### Stage 7: Ready-screen polish (batch — all touch `DefaultView`/`ContentView`)
-- Rename "Start Slideshow" button → "Select".
-- Window title → folder name + image count.
-- Remove the now-redundant title above the hero image.
-- Clip hero photo to rounded rect + border/shadow.
-- Three ready-screen buttons → circles with images/tooltips.
-- Accent colour on the default button.
-- Default window size → 1500×1500.
-- On `Esc`, hero image becomes the last-displayed slide (resume point).
 
 ### Stage 8: Zoom & pan (`SlideView`, `ScrollZoomView`)
 - Pinch-to-zoom (`MagnifyGesture`) + Cmd+/Cmd- keyboard shortcuts — extends the existing `scale` state

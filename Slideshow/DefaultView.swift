@@ -13,13 +13,9 @@ struct DefaultView: View {
     var onRestartFromBeginning: () -> Void
 
     @State private var dragOver = false
-    @SceneStorage("selectedFolder") private var selectedFolder = URL.picturesDirectory
 
     var body: some View {
-        let check = viewModel.images.count
         VStack {
-            Text(check > 0 ? "Selected folder: \(selectedFolder.lastPathComponent)  (\(check.formatted()) images)" : "")
-
             if viewModel.images.isEmpty {
                 switch viewModel.emptyReason {
                 case .accessDenied:
@@ -52,24 +48,52 @@ struct DefaultView: View {
                 viewModel.selectedImage
                     .resizable()
                     .scaledToFit()
+                    .clipShape(.rect(cornerRadius: 12))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(.separator, lineWidth: 1)
+                    }
+                    .shadow(radius: 8)
                     .padding(.bottom)
             }
 
             HStack {
-                Button("Select Folder or Image…") {
-                    viewModel.selectFileOrFolder()
+                // buttonStyle's argument is `some ButtonStyle`, so the two
+                // branches can't share one Button behind a ternary — each
+                // concrete style (.borderedProminent vs .bordered) is its
+                // own opaque type. Branching the whole button is the
+                // standard way around that.
+                if viewModel.images.isEmpty {
+                    Button("Select Folder or Image…", systemImage: "folder") {
+                        viewModel.selectFileOrFolder()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .help("Select Folder or Image…")
+                } else {
+                    Button("Select Folder or Image…", systemImage: "folder") {
+                        viewModel.selectFileOrFolder()
+                    }
+                    .buttonStyle(.bordered)
+                    .help("Select Folder or Image…")
                 }
 
                 if !viewModel.images.isEmpty {
-                    Button("Start") {
+                    Button("Start", systemImage: "play.fill") {
                         onStartAtCurrent()
                     }
+                    .buttonStyle(.borderedProminent)
+                    .help("Start")
 
-                    Button("Re-start from Beginning") {
+                    Button("Re-start from Beginning", systemImage: "arrow.counterclockwise") {
                         onRestartFromBeginning()
                     }
+                    .buttonStyle(.bordered)
+                    .help("Re-start from Beginning")
                 }
             }
+            .labelStyle(.iconOnly)
+            .buttonBorderShape(.circle)
+            .controlSize(.large)
         }
         .padding()
         // The whole picker screen is the drop target now, not just the

@@ -23,11 +23,8 @@ struct SlideshowApp: App {
         WindowGroup("Slideshow", id: "contents") {
             ContentView()
         }
-        .windowIdealPlacement { _, context in
-//            var size = content.sizeThatFits(.unspecified)
-            let displayBounds = context.defaultDisplay.visibleRect
-            // modify size based on display bounds
-            return WindowPlacement(size: displayBounds.size)
+        .windowIdealPlacement { _, _ in
+            WindowPlacement(size: CGSize(width: 1500, height: 1500))
         }
         .commands {
             CommandGroup(replacing: CommandGroupPlacement.appInfo) {

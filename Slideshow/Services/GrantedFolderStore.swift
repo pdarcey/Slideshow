@@ -63,6 +63,22 @@ enum GrantedFolderStore {
             match=\(match?.url.path ?? "none", privacy: .public)
             """
         )
+        if match == nil {
+            // No candidate matched — log every stored path, in both raw
+            // and symlink-resolved form, alongside the query's own
+            // resolved form. `isAncestor` compares `standardizedFileURL`
+            // (normalizes "." / ".." / redundant slashes) but does *not*
+            // resolve symlinks — a real gap for anything under
+            // `/Volumes/...`, where the mounted path and the bookmark's
+            // resolved path can disagree exactly the way `/tmp` vs
+            // `/private/tmp` do elsewhere in this codebase.
+            let queryResolved = url.resolvingSymlinksInPath().path
+            logger.info("bookmarkCovering: no match; query resolved=\(queryResolved, privacy: .public)")
+            for candidate in candidates {
+                let resolved = candidate.url.resolvingSymlinksInPath().path
+                logger.info("bookmarkCovering: candidate \(candidate.url.path, privacy: .public) resolved=\(resolved, privacy: .public)")
+            }
+        }
         return match?.bookmarkData
     }
 

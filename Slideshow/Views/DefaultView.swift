@@ -107,8 +107,6 @@ struct DefaultView: View {
                     .help("Re-start from Beginning")
                 }
             }
-            .labelStyle(.iconOnly)
-            .buttonBorderShape(.circle)
             .controlSize(.large)
         }
         .padding()

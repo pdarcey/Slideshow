@@ -55,7 +55,15 @@ enum GrantedFolderStore {
     /// via System Settings → Privacy & Security → Files and Folders) are
     /// pruned from the store as a side effect of resolving them here.
     static func bookmarkCovering(_ url: URL, defaults: UserDefaults = .standard) -> Data? {
-        resolveAll(pruningInvalidIn: defaults).first { isAncestor($0.url, of: url) }?.bookmarkData
+        let candidates = resolveAll(pruningInvalidIn: defaults)
+        let match = candidates.first { isAncestor($0.url, of: url) }
+        logger.info(
+            """
+            bookmarkCovering(\(url.path, privacy: .public)): \(candidates.count) stored, \
+            match=\(match?.url.path ?? "none", privacy: .public)
+            """
+        )
+        return match?.bookmarkData
     }
 
     /// True if `ancestor` is `descendant` itself or one of its parent
@@ -81,10 +89,14 @@ enum GrantedFolderStore {
                 options: [.withSecurityScope],
                 relativeTo: nil,
                 bookmarkDataIsStale: &isStale
-            ) else { continue }
+            ) else {
+                logger.error("resolveAll: a stored bookmark failed to resolve and is being pruned")
+                continue
+            }
             resolved.append((bookmarkData, url))
         }
         if resolved.count != stored.count {
+            logger.info("resolveAll: pruned \(stored.count - resolved.count) unresolvable bookmark(s)")
             persist(resolved.map(\.bookmarkData), defaults: defaults)
         }
         return resolved

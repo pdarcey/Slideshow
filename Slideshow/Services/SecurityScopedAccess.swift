@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: "com.xerodonia.Slideshow", category: "SecurityScopedAccess")
 
 /// Resolves a security-scoped bookmark and briefly re-opens access around a
 /// unit of work, then closes it again immediately afterwards — the shared
@@ -29,7 +32,14 @@ enum SecurityScopedAccess {
             options: [.withSecurityScope],
             relativeTo: nil,
             bookmarkDataIsStale: &isStale
-        ), url.startAccessingSecurityScopedResource() else { return }
+        ) else {
+            logger.error("withAccess: failed to resolve bookmark data")
+            return
+        }
+        guard url.startAccessingSecurityScopedResource() else {
+            logger.error("withAccess: resolved \(url.path, privacy: .public) but startAccessingSecurityScopedResource() returned false")
+            return
+        }
         defer { url.stopAccessingSecurityScopedResource() }
         body()
     }

@@ -170,6 +170,54 @@ extension ContentView {
             return (folderURL, selectedImage)
         }
 
+        /// Enumerates `folderURL` directly, falling back to a previously-
+        /// granted ancestor folder's bookmark (`grantedFolderLookup`, see
+        /// `GrantedFolderStore`) if direct access fails. Logged at every
+        /// step (OSLog, not just on failure) since a genuine sandbox
+        /// denial can't be reproduced under test (this test process isn't
+        /// sandboxed the same way `contentsOfDirectory` would be in the
+        /// real app — see `ContentViewModelTests`) — Console.app on a
+        /// real run is the only way to see exactly which step fails.
+        private func enumerate(_ folderURL: URL) -> (files: [URL]?, bookmarkData: Data?) {
+            let fileManager = FileManager.default
+            let path = folderURL.path
+
+            if let files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil) {
+                logger.info("enumerate: direct access to \(path, privacy: .public) succeeded")
+                // Direct/ambient access already covers this (a fresh
+                // Powerbox grant from a panel pick, drag, or Dock/Finder
+                // open, or a resume(from:) bookmark's own still-open
+                // access window) — refreshed on every successful load, so
+                // a resumed window's stored bookmark never goes stale.
+                let bookmarkData = try? folderURL.bookmarkData(
+                    options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil
+                )
+                return (files, bookmarkData)
+            }
+
+            logger.info("enumerate: direct access to \(path, privacy: .public) failed, trying granted-folder fallback")
+            guard let coveringBookmark = grantedFolderLookup?(folderURL) else {
+                logger.info("enumerate: no granted-folder bookmark covers \(path, privacy: .public)")
+                return (nil, nil)
+            }
+
+            logger.info("enumerate: found a covering granted-folder bookmark for \(path, privacy: .public); retrying")
+            var result: (files: [URL]?, bookmarkData: Data?) = (nil, nil)
+            SecurityScopedAccess.withAccess(to: coveringBookmark) {
+                let files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil)
+                guard let files else {
+                    logger.error("enumerate: fallback access to \(path, privacy: .public) still failed")
+                    return
+                }
+                logger.info("enumerate: fallback access to \(path, privacy: .public) succeeded")
+                let bookmarkData = try? folderURL.bookmarkData(
+                    options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil
+                )
+                result = (files, bookmarkData)
+            }
+            return result
+        }
+
         /// Loads every supported image directly inside `folderURL`, sorted
         /// alphabetically, and selects `selectedImage`'s position within
         /// that sorted list if one was given (otherwise the first slide).
@@ -199,32 +247,7 @@ extension ContentView {
             // would keep accumulating stale entries from earlier ones.
             imageCache.removeAll()
 
-            let fileManager = FileManager.default
-            var files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil)
-            var newBookmarkData: Data?
-
-            if files != nil {
-                // Direct/ambient access already covers this (a fresh
-                // Powerbox grant from a panel pick, drag, or Dock/Finder
-                // open, or a resume(from:) bookmark's own still-open
-                // access window) — refreshed on every successful load, so
-                // a resumed window's stored bookmark never goes stale.
-                newBookmarkData = try? folderURL.bookmarkData(
-                    options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil
-                )
-            } else if let coveringBookmark = grantedFolderLookup?(folderURL) {
-                // Direct enumeration failed — retry under a previously-
-                // granted ancestor folder's access, which covers
-                // folderURL's whole subtree, bookmark creation included.
-                SecurityScopedAccess.withAccess(to: coveringBookmark) {
-                    files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil)
-                    if files != nil {
-                        newBookmarkData = try? folderURL.bookmarkData(
-                            options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil
-                        )
-                    }
-                }
-            }
+            let (files, newBookmarkData) = enumerate(folderURL)
 
             guard let files else {
                 images = []

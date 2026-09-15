@@ -49,6 +49,17 @@ extension ContentView {
         /// (tests never set this, so it's simply never called).
         var onStateChanged: (() -> Void)?
 
+        /// Looks up a previously-granted folder covering a URL that direct
+        /// enumeration just failed for (see `GrantedFolderStore`). Nil by
+        /// default, same reasoning as `onStateChanged`: tests never set
+        /// this, so it's simply never called, and never touches real
+        /// `UserDefaults`. `ContentView` wires it to `GrantedFolderStore`.
+        var grantedFolderLookup: ((URL) -> Data?)?
+
+        /// Records a freshly-granted folder as available for future
+        /// sessions. Same testability reasoning as `grantedFolderLookup`.
+        var recordGrantedFolder: ((URL, Data) -> Void)?
+
         private(set) var index: Int = 0 {
             didSet {
                 let clamped = images.isEmpty ? 0 : min(max(index, 0), images.count - 1)
@@ -119,7 +130,12 @@ extension ContentView {
             let panel = NSOpenPanel()
             panel.canChooseDirectories = true
             panel.canChooseFiles = true
-            panel.allowedContentTypes = [.bmp, .jpeg, .png, .tiff, .gif, .heic]
+            // .folder has to be listed alongside the image types, even
+            // though canChooseDirectories is already true — otherwise a
+            // folder doesn't conform to anything in allowedContentTypes,
+            // so the panel lets you navigate into one but never actually
+            // select it; only images are selectable without this.
+            panel.allowedContentTypes = [.bmp, .jpeg, .png, .tiff, .gif, .heic, .folder]
             panel.allowsMultipleSelection = false
             panel.prompt = "Select"
             // Picking a single image (rather than its folder) works fine —
@@ -158,14 +174,18 @@ extension ContentView {
         /// access to its whole tree, but picking or dropping a single
         /// *file* only grants access to that one file — enumerating its
         /// *parent* folder fails unless broader access was already
-        /// separately granted earlier in this launch. This is a hard macOS
-        /// sandbox restriction, not something worth working around (Finder's
-        /// "Open With"/double-click hand the app exactly one file with no
-        /// way to ask for its folder, which is why Slideshow no longer
-        /// registers as a handler for individual image files — only for
-        /// folders). Rather than showing a silent, confusing one-file
-        /// "slideshow" when a lone file does still reach here, surface it
-        /// via `emptyReason` so the picker screen can explain what happened.
+        /// separately granted earlier. Until now "already granted" only
+        /// ever meant "granted earlier this launch"; `grantedFolderLookup`
+        /// (see `GrantedFolderStore`) extends that to a folder granted in
+        /// a *previous* session too, as a fallback once direct enumeration
+        /// fails. Finder's "Open With"/double-click hand the app exactly
+        /// one file with no way to ask for its folder at all, which is why
+        /// Slideshow no longer registers as a handler for individual image
+        /// files — only for folders — so this fallback matters specifically
+        /// for drag-and-drop of a lone file. Rather than showing a silent,
+        /// confusing one-file "slideshow" when access still isn't
+        /// available, surface it via `emptyReason` so the picker screen
+        /// can explain what happened.
         func getImagesAtURL(_ folderURL: URL, selectedImage: URL? = nil) {
             // A new folder invalidates every cached decode from whichever
             // one was loaded before, on every outcome below (success or
@@ -174,11 +194,33 @@ extension ContentView {
             imageCache.removeAll()
 
             let fileManager = FileManager.default
+            var files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil)
+            var newBookmarkData: Data?
 
-            guard let files = try? fileManager.contentsOfDirectory(
-                at: folderURL,
-                includingPropertiesForKeys: nil
-            ) else {
+            if files != nil {
+                // Direct/ambient access already covers this (a fresh
+                // Powerbox grant from a panel pick, drag, or Dock/Finder
+                // open, or a resume(from:) bookmark's own still-open
+                // access window) — refreshed on every successful load, so
+                // a resumed window's stored bookmark never goes stale.
+                newBookmarkData = try? folderURL.bookmarkData(
+                    options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil
+                )
+            } else if let coveringBookmark = grantedFolderLookup?(folderURL) {
+                // Direct enumeration failed — retry under a previously-
+                // granted ancestor folder's access, which covers
+                // folderURL's whole subtree, bookmark creation included.
+                SecurityScopedAccess.withAccess(to: coveringBookmark) {
+                    files = try? fileManager.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: nil)
+                    if files != nil {
+                        newBookmarkData = try? folderURL.bookmarkData(
+                            options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil
+                        )
+                    }
+                }
+            }
+
+            guard let files else {
                 images = []
                 index = 0
                 bookmarkData = nil
@@ -205,15 +247,10 @@ extension ContentView {
                 folderName = nil
             } else {
                 folderName = folderURL.lastPathComponent
-                // Refreshed on every successful load, regardless of whether
-                // folderURL came from a fresh Powerbox grant or a resolved
-                // bookmark (resume(from:)) — this is what keeps a resumed
-                // window's stored bookmark from ever going stale.
-                bookmarkData = try? folderURL.bookmarkData(
-                    options: [.withSecurityScope],
-                    includingResourceValuesForKeys: nil,
-                    relativeTo: nil
-                )
+                bookmarkData = newBookmarkData
+                if let bookmarkData {
+                    recordGrantedFolder?(folderURL, bookmarkData)
+                }
             }
             if let selectedImage, let startIndex = loadedSlides.firstIndex(where: { $0.url == selectedImage }) {
                 index = startIndex

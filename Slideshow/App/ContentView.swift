@@ -89,6 +89,8 @@ struct ContentView: View {
                 viewModel.resume(from: state)
             }
             viewModel.onStateChanged = { AppCoordinator.shared.windowStateDidChange() }
+            viewModel.grantedFolderLookup = { GrantedFolderStore.bookmarkCovering($0) }
+            viewModel.recordGrantedFolder = { GrantedFolderStore.record($0, bookmarkData: $1) }
             captureWindowIfNeeded()
         }
         .onChange(of: appearsActive) { _, _ in

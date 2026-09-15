@@ -39,6 +39,8 @@
 		C9B0EC2B2E48B002006081A4 /* ScrollZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */; };
 		C9B0EC2D2E48B353006081A4 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC2C2E48B353006081A4 /* HelpView.swift */; };
 		C9F26E463058D37D008D6FF0 /* SecurityScopedAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F26E453058D37D008D6FF0 /* SecurityScopedAccess.swift */; };
+		C9F26E483058D692008D6FF0 /* GrantedFolderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F26E473058D691008D6FF0 /* GrantedFolderStore.swift */; };
+		C9F26E4A3058D733008D6FF0 /* GrantedFolderStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F26E493058D733008D6FF0 /* GrantedFolderStoreTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +99,8 @@
 		C9B0EC2C2E48B353006081A4 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
 		C9D08A663040871E00E37B34 /* Slideshow.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Slideshow.xctestplan; sourceTree = "<group>"; };
 		C9F26E453058D37D008D6FF0 /* SecurityScopedAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScopedAccess.swift; sourceTree = "<group>"; };
+		C9F26E473058D691008D6FF0 /* GrantedFolderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrantedFolderStore.swift; sourceTree = "<group>"; };
+		C9F26E493058D733008D6FF0 /* GrantedFolderStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrantedFolderStoreTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -175,6 +179,7 @@
 			children = (
 				C90BA3B62A97841B00A006DC /* SlideshowTests.swift */,
 				C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */,
+				C9F26E493058D733008D6FF0 /* GrantedFolderStoreTests.swift */,
 			);
 			path = SlideshowTests;
 			sourceTree = "<group>";
@@ -234,6 +239,7 @@
 				C9697E5530406F970025F8F3 /* WindowStateStore.swift */,
 				C92649D83041BF330058641B /* ShareSheetPresenter.swift */,
 				C9F26E453058D37D008D6FF0 /* SecurityScopedAccess.swift */,
+				C9F26E473058D691008D6FF0 /* GrantedFolderStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -430,6 +436,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C9815D622E4755F900F9351E /* AboutView.swift in Sources */,
+				C9F26E483058D692008D6FF0 /* GrantedFolderStore.swift in Sources */,
 				C9B0EC2D2E48B353006081A4 /* HelpView.swift in Sources */,
 				C9697E5030400CB90025F8F3 /* AppCoordinator.swift in Sources */,
 				C90BA3A72A97841900A006DC /* ContentView.swift in Sources */,
@@ -462,6 +469,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9F26E4A3058D733008D6FF0 /* GrantedFolderStoreTests.swift in Sources */,
 				C9697E4D303FFD8D0025F8F3 /* ContentViewModelTests.swift in Sources */,
 				C90BA3B72A97841B00A006DC /* SlideshowTests.swift in Sources */,
 			);

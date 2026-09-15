@@ -187,6 +187,55 @@ final class ContentViewModelTests {
         #expect(viewModel.emptyReason == .notYetAttempted)
     }
 
+    // MARK: - grantedFolderLookup / recordGrantedFolder (Stage 16, p534)
+
+    @Test func successfulLoadRecordsTheFolderAsGranted() throws {
+        try writeTestImage(named: "photo.png")
+
+        var recordedURL: URL?
+        var recordedBookmark: Data?
+        viewModel.recordGrantedFolder = { url, bookmark in
+            recordedURL = url
+            recordedBookmark = bookmark
+        }
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(recordedURL == tempDirectory)
+        #expect(recordedBookmark != nil)
+    }
+
+    @Test func grantedFolderLookupIsNotConsultedWhenDirectAccessSucceeds() throws {
+        try writeTestImage(named: "photo.png")
+
+        var lookupCalled = false
+        viewModel.grantedFolderLookup = { _ in
+            lookupCalled = true
+            return nil
+        }
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(!lookupCalled)
+    }
+
+    @Test func grantedFolderLookupIsConsultedWhenDirectEnumerationFails() throws {
+        // Mirrors unreadableFolderSetsAccessDeniedAndProducesNoSlides — a
+        // folder that doesn't exist can't actually be rescued by any
+        // bookmark, but this proves the fallback is attempted at all
+        // (real recovery needs genuine sandbox denial, not reproducible
+        // against this test process's own temp directory — see Plan.md).
+        let unreadableFolder = tempDirectory.appending(path: "does-not-exist")
+
+        var lookedUpURL: URL?
+        viewModel.grantedFolderLookup = { url in
+            lookedUpURL = url
+            return nil
+        }
+        viewModel.getImagesAtURL(unreadableFolder)
+
+        #expect(lookedUpURL == unreadableFolder)
+        #expect(viewModel.emptyReason == .accessDenied)
+    }
+
     // MARK: - folderName
 
     @Test func successfulLoadSetsFolderNameToTheFoldersLastPathComponent() throws {

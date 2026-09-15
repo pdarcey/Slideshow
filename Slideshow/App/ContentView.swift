@@ -59,6 +59,7 @@ struct ContentView: View {
             }
         }
         .navigationTitle(windowTitle)
+        .navigationDocument(viewModel.folderURL)
         .focusedSceneValue(\.slideshowWindow, FocusedSlideshowWindow(
             viewModel: viewModel,
             isSlideshowRunning: slideShowIsRunning,

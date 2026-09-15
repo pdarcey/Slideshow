@@ -35,6 +35,12 @@ extension ContentView {
         /// folder this window is displaying. Nil whenever `images` is empty.
         private(set) var folderName: String?
 
+        /// The loaded folder's URL, so the window can set its represented
+        /// URL (`.navigationDocument`) — gives the standard right-click/
+        /// Cmd-click title bar path popup for free. Nil whenever `images`
+        /// is empty, same as `folderName`.
+        private(set) var folderURL: URL?
+
         /// A security-scoped bookmark for the currently-loaded folder, so
         /// this window's state can be persisted and restored across a
         /// relaunch. Refreshed on every successful load; nil whenever
@@ -223,9 +229,7 @@ extension ContentView {
             guard let files else {
                 images = []
                 index = 0
-                bookmarkData = nil
-                folderName = nil
-                emptyReason = .accessDenied
+                clearFolderState(emptyReason: .accessDenied)
                 onStateChanged?()
                 return
             }
@@ -242,11 +246,10 @@ extension ContentView {
 
             images = loadedSlides
             if loadedSlides.isEmpty {
-                emptyReason = .noSupportedImages
-                bookmarkData = nil
-                folderName = nil
+                clearFolderState(emptyReason: .noSupportedImages)
             } else {
                 folderName = folderURL.lastPathComponent
+                self.folderURL = folderURL
                 bookmarkData = newBookmarkData
                 if let bookmarkData {
                     recordGrantedFolder?(folderURL, bookmarkData)
@@ -258,6 +261,17 @@ extension ContentView {
                 index = 0
             }
             onStateChanged?()
+        }
+
+        /// Clears everything about the previously-loaded folder except
+        /// `images`/`index` (each call site's own outcome dictates those
+        /// slightly differently) — shared by `getImagesAtURL`'s two
+        /// "nothing usable" outcomes (no access, no supported images).
+        private func clearFolderState(emptyReason: EmptyReason) {
+            bookmarkData = nil
+            folderName = nil
+            folderURL = nil
+            self.emptyReason = emptyReason
         }
 
         /// Updates which slide is "selected" without reloading anything —
@@ -305,6 +319,7 @@ extension ContentView {
                 index = 0
                 bookmarkData = nil
                 folderName = nil
+                self.folderURL = nil
                 emptyReason = .previousFolderUnavailable
                 onStateChanged?()
                 return
@@ -315,6 +330,7 @@ extension ContentView {
                 index = 0
                 bookmarkData = nil
                 folderName = nil
+                self.folderURL = nil
                 emptyReason = .previousFolderUnavailable
                 onStateChanged?()
                 return

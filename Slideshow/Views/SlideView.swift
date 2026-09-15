@@ -53,6 +53,11 @@ struct SlideView: View {
     @State private var isHeroTransitionSlide = true
     /// Backs the context menu's "Share…" — see `ShareSheetPresenter`.
     @State private var sharePresenter = ShareSheetPresenter()
+    /// Hides the cursor after a few idle seconds full-screen — see `CursorIdleHider`.
+    /// Non-private: `SlideView+FullScreen.swift` (a separate extension
+    /// file, keeping this already-large view's body under SwiftLint's
+    /// length limit) needs to reach it too.
+    @State var cursorIdleHider = CursorIdleHider()
     @FocusState private var focussed: Bool
     @AppStorage("showMetadata") var showMetadata = true
     /// `scale`/`offset` are also `ContentView`-owned, for the same reason
@@ -68,9 +73,11 @@ struct SlideView: View {
     /// Also `ContentView`-owned, so the Toggle Help menu command can reach
     /// it — same reasoning as `currentImage`/`scale`/`offset`.
     @Binding var showHelp: Bool
-    @Environment(\.appearsActive) private var appearsActive
+    /// Non-private, same reason as `cursorIdleHider` above.
+    @Environment(\.appearsActive) var appearsActive
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var window: NSWindow?
+    /// Non-private, same reason as `cursorIdleHider` above.
+    @State var window: NSWindow?
     @AppStorage("slideTransition") private var slideTransition: SlideTransition = .crossFade
     @AppStorage("transitionDuration") private var transitionDuration: Double = 0.35
 
@@ -204,6 +211,7 @@ struct SlideView: View {
         .onChange(of: appearsActive) { _, _ in
             captureWindowIfNeeded()
         }
+        .onDisappear { cursorIdleHider.stop() }
         .onKeyPress(.escape) {
             // User has hit Esc, cancel the slideshow
             withOptionalAnimation(reduceMotion: reduceMotion) {
@@ -351,26 +359,6 @@ struct SlideView: View {
         sharePresenter.present(url, relativeTo: anchor, of: contentView, preferredEdge: .minY)
     }
 
-    /// Captures this view's own hosting window the first time it's known to
-    /// be active, then enters full screen. Using `appearsActive` rather than
-    /// `NSApplication.shared.windows.last`/`.keyWindow` means this reliably
-    /// targets *this* SlideView's window even when other Slideshow windows
-    /// are open at the same time.
-    private func captureWindowIfNeeded() {
-        guard appearsActive, window == nil else { return }
-        window = NSApplication.shared.keyWindow
-        if let window, !window.styleMask.contains(.fullScreen) {
-            window.toggleFullScreen(nil)
-        }
-    }
-
-    private func exitFullScreen() {
-        // Toggle off full-screen mode, if necessary
-        guard let window, window.styleMask.contains(.fullScreen) else { return }
-        Task { @MainActor in
-            window.toggleFullScreen(nil)
-        }
-    }
 }
 
 extension String {

@@ -257,6 +257,17 @@ extension ContentView {
                 return
             }
 
+            // Record the grant regardless of whether *this* folder has any
+            // images directly inside it (p370) — a purely-organizational
+            // top-level folder (containing only subfolders, e.g. one
+            // folder per photoshoot) needs to be remembered too, so a
+            // later drag of an image several levels below it can still
+            // fall back to this bookmark after a relaunch. Recording an
+            // already-covered folder is a no-op (see GrantedFolderStore).
+            if let newBookmarkData {
+                recordGrantedFolder?(folderURL, newBookmarkData)
+            }
+
             // Images are decoded on demand (loadedImage(for:)), not here —
             // so this is a plain extension-based filter, not a validity
             // check. A file with a supported extension that turns out not
@@ -274,9 +285,6 @@ extension ContentView {
                 folderName = folderURL.lastPathComponent
                 self.folderURL = folderURL
                 bookmarkData = newBookmarkData
-                if let bookmarkData {
-                    recordGrantedFolder?(folderURL, bookmarkData)
-                }
             }
             if let selectedImage, let startIndex = loadedSlides.firstIndex(where: { $0.url == selectedImage }) {
                 index = startIndex

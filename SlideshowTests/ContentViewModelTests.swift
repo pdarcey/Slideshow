@@ -204,6 +204,26 @@ final class ContentViewModelTests {
         #expect(recordedBookmark != nil)
     }
 
+    @Test func organizationalFolderWithNoDirectImagesIsStillRecordedAsGranted() throws {
+        // p370: a purely-organizational top-level folder — one containing
+        // only subfolders, each with images of their own, and none
+        // directly inside it — must still be recorded, so a later drag of
+        // an image several levels below it can fall back to this
+        // bookmark after a relaunch. Previously this only happened when
+        // loadedSlides was non-empty, so an ancestor folder with no
+        // direct images of its own was silently never remembered.
+        try FileManager.default.createDirectory(
+            at: tempDirectory.appending(path: "Subfolder"), withIntermediateDirectories: true
+        )
+
+        var recordedURL: URL?
+        viewModel.recordGrantedFolder = { url, _ in recordedURL = url }
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(recordedURL == tempDirectory)
+        #expect(viewModel.emptyReason == .noSupportedImages)
+    }
+
     @Test func grantedFolderLookupIsNotConsultedWhenDirectAccessSucceeds() throws {
         try writeTestImage(named: "photo.png")
 

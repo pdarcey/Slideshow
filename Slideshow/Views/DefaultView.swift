@@ -107,6 +107,7 @@ struct DefaultView: View {
                     .help("Re-start from Beginning")
                 }
             }
+            .labelStyle(.iconOnly)
             .controlSize(.large)
         }
         .padding()

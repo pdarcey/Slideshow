@@ -128,67 +128,55 @@
 
 All merged to `main` as of 2026-08-29, and pushed to `origin/main`.
 
-## Next stages: confirmed order
+14. Stage 14: Enter-to-start (p533). `DefaultView`'s prominent button ("Select Folder or Image…" when
+    empty, "Start" once a folder's loaded) gained `.keyboardShortcut(.defaultAction)`, so Enter/Return
+    triggers whichever one is currently the default action. No `@FocusState`/architecture change needed.
+    Confirmed by Paul: foreground window's button highlighted and correct (Select vs Start) in both
+    states.
+15. Stage 15: Reduce memory footprint (p406). `Slide` no longer carries a decoded `image`, just
+    `imageName`/`url`/`id`; `ContentView.ViewModel.loadedImage(for:)` decodes on demand instead, backed
+    by a cache bounded to the 2 most-recently-requested images (covers a crossfade's momentary overlap)
+    regardless of folder size — cleared unconditionally on every `getImagesAtURL` load so switching
+    folders in an existing window never accumulates stale entries from the one before it. New
+    `SecurityScopedAccess` (`Services/`) generalizes what used to be `ContentView`'s private
+    `withFolderAccess(_:)`, so lazy decoding, Copy, and Share all share the same resolve/access/work/
+    close shape. `SlideView` takes an injected `loadImage: (Slide) -> Image` closure (same pattern as its
+    existing `onCopyImage`/`shareableURL`) instead of reading `slide.image` directly. Side effect: the
+    folder scan is now a plain extension filter rather than doubling as a decode-validity check, so one
+    undecodable file no longer silently truncates every alphabetically-later file too (no test covered
+    the old behaviour). All 26 existing unit tests passed unchanged — none had actually asserted on
+    `Slide.image`. Confirmed by Paul: memory stays flat during a real slideshow run on a large folder,
+    low 100s of MB rather than scaling with photo count.
+16. Stage 16: Save user-selected folders for future access (p534). New `GrantedFolderStore`
+    (`Services/`), same persisted-bookmark shape as `WindowStateStore` but recorded on every successful
+    `getImagesAtURL` load and never removed when a window closes — closes the actual gap behind this
+    issue: dropping a single *file* onto an existing window only grants access to that file, so
+    enumerating its parent folder fails unless the app already has broader access, and until now
+    "already has" only meant "this session." Deduplicated to the highest granted ancestor (recording an
+    already-covered folder is a no-op; recording an ancestor of existing entries replaces them), checked
+    via resolved, standardized `pathComponents`. The same resolution pass prunes any bookmark that fails
+    to resolve (folder deleted, or access revoked via System Settings). `ContentView.ViewModel` gained
+    `grantedFolderLookup`/`recordGrantedFolder`, both nil by default — same testability seam as
+    `onStateChanged`. `getImagesAtURL` falls back to a covering granted-folder bookmark when direct
+    enumeration fails, retrying enumeration *and* bookmark creation inside that same access window (a
+    fresh bookmark can only be created while access is actually open). 9 new tests (3 on the fallback
+    wiring, 6 on `GrantedFolderStore`'s dedup logic via an isolated `UserDefaults` suite per test) — full
+    suite 35/35. Also fixed a pre-existing, unrelated bug Paul hit while verifying this stage:
+    `selectFileOrFolder()`'s `NSOpenPanel` had `canChooseDirectories = true` but `allowedContentTypes`
+    only listed image UTTypes, so folders (matching none of them) could never actually be selected, only
+    images could — added `.folder` to the list (logged as Clarity p536). Confirmed by Paul: folder
+    selection works again, and a dropped file from a folder granted in a previous session now loads
+    instead of showing "Can't Access That Folder."
 
-Today's session (2026-09-15) folds in two Clarity issues that weren't reflected in this plan yet — the
-outstanding backlog is actually 4 issues, not the 1 previously listed here. Grouped by what touches the
-same code and what depends on what, confirmed with Paul:
+Stages 14–16 committed to `main` as of 2026-09-15 (`09633e1`, `9fef54e`, `5b8d16d`), not yet pushed.
+
+## Next stages: confirmed order
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
 (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
 
-### Stage 14: Enter-to-start (p533)
-- `DefaultView`'s button row already branches between a prominent "Select Folder or Image…" button (no
-  folder loaded) and a prominent "Start" button (folder loaded). Add `.keyboardShortcut(.defaultAction)`
-  to whichever one is prominent in each branch, so Enter/Return triggers it — standard HIG default-button
-  behaviour. No `@FocusState`/architecture change needed; nothing else on the picker screen competes for
-  Return.
-
-### Stage 15: Reduce memory footprint (p406)
-- `ContentView.ViewModel.getImagesAtURL` loads every image in a folder eagerly into memory via
-  `NSImage(contentsOfFile:)`, storing a decoded `Image` on every `Slide`. `Slide` will drop that eager
-  `image` field and decode on demand instead, for whichever slide is actually about to be shown.
-- A small, strictly bounded on-demand cache (current slide + one-slide prefetch for smooth crossfades —
-  at most 2 decoded images at any time, regardless of folder size) sits on the per-window `ViewModel`, so
-  memory use stops scaling with folder size entirely. Explicitly cleared (not just overwritten) the
-  moment a new folder is loaded into an existing window, so switching folders never accumulates stale
-  entries from the old one — confirmed with Paul this needed to be a deliberate design point, not an
-  assumed side effect. Window close needs no extra teardown: `AppCoordinator` already tracks the
-  `ViewModel` only `weak`, so the cache is freed by ARC along with everything else when a window closes.
-- Needs a shared "resolve bookmark → start security-scoped access → do work → stop access" helper, since
-  decoding now happens at arbitrary later moments rather than one eager batch — generalized out of
-  `ContentView.withFolderAccess(_:)` (currently private, Copy/Share-only) so both lazy slide loading and
-  Stage 16 can use it.
-- Rework the 26 `ContentViewModelTests` that currently assert against eager-loaded `Slide.image`.
-- Paul verifies actual memory behaviour on a large folder before this gets committed.
-
-### Stage 16: Save user-selected folders for future access (p534)
-- Not a picker/UX problem — `NSOpenPanel` always works regardless of prior grants, confirmed with Paul.
-  The actual gap is the sandbox restriction already documented in `getImagesAtURL`: dropping a single
-  *file* only grants access to that file, so enumerating its parent folder fails unless the app already
-  has broader access — today "already has" only means "already has this session." Goal: also honour
-  access granted in a *previous* session, specifically for drag-and-drop.
-- New `GrantedFolderStore`, same persisted-bookmark shape as `WindowStateStore`, but recorded on every
-  successful `getImagesAtURL` load (panel pick, drag, Dock/Finder open, or `resume(from:)`) and — the key
-  difference from `WindowState` — never removed when a window closes.
-- Stored with **highest-ancestor deduplication** (confirmed with Paul): adding a new grant skips it
-  entirely if an existing entry already covers it (same folder, or an ancestor of it); if the new grant
-  is itself an ancestor of existing entries, those now-redundant descendants are dropped in favour of the
-  new, higher one. E.g. granting `~/Documents` then `~/Documents/Images` stores only `~/Documents`;
-  granting unrelated `~/Images/2026/January` first, then later `~/Images`, collapses down to just
-  `~/Images`. Containment is checked via resolved, standardized `pathComponents`, not raw bookmark bytes
-  or string prefixes (which would wrongly match `~/Documents2` against `~/Documents`).
-- The same resolution pass that checks containment also prunes any stored bookmark that fails to resolve
-  (folder deleted, or access revoked via System Settings → Privacy & Security → Files and Folders) —
-  self-cleaning, no UI needed anywhere for this feature; revocation stays entirely the OS's own UI, per
-  Paul.
-- In `getImagesAtURL`, when direct enumeration fails, fall back to trying each persisted granted-folder
-  bookmark via Stage 15's shared access helper before giving up with `.accessDenied`.
-- Needs one small testability seam (an injectable lookup closure, matching the existing `onStateChanged`
-  pattern) so this stays unit-testable without touching real `UserDefaults`.
-
-Order: 14 → 15 → 16 (16 depends on 15's shared access helper). Pause after each stage for Paul to verify
-before moving to the next; nothing gets committed until he's confirmed it actually works.
+No further stage confirmed yet — check Clarity for the current outstanding backlog before starting new
+work.
 
 ## Working rhythm (established over Stage 5)
 

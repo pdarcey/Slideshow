@@ -61,7 +61,8 @@ structure:
   metadata, context menu, accessibility actions. The biggest single file in the project by a wide
   margin — worth skimming its doc comments before making changes here.
 - `Models/Slide.swift` — the per-image model: real identity via `UUID`, plus (since Stage 10) the
-  slide's own file `URL`, needed for Copy/Reveal in Finder/Share.
+  slide's own file `URL`, needed for Copy/Reveal in Finder/Share. Since Stage 15, that's *all* it
+  carries — no decoded image any more; see `ContentView.ViewModel.loadedImage(for:)`.
 - `App/AppCoordinator.swift` — cross-window and app-lifecycle logic: multi-window restore, Finder/Dock
   open routing, closing stale windows.
 - `App/AppDelegate.swift` — thin `NSApplicationDelegate`; just flags when the app is quitting so
@@ -82,10 +83,18 @@ structure:
 - `Services/ShareSheetPresenter.swift` — a small `NSSharingServicePickerDelegate` wrapper so the Share
   Sheet can be anchored at the mouse pointer instead of `ShareLink`'s automatic (and, full-screen,
   broken) positioning.
+- `Services/SecurityScopedAccess.swift` (Stage 15) — the one shared "resolve bookmark → open access →
+  do the work → close it" helper, used by lazy slide decoding, Copy, Share, and (Stage 16) the
+  granted-folder fallback. Used to be duplicated as `ContentView`'s private `withFolderAccess(_:)`.
+- `Services/GrantedFolderStore.swift` (Stage 16) — persists every folder ever granted, independent of
+  any one window, deduplicated to the highest granted ancestor. See "The gap that wasn't where it
+  looked" below.
 - `Extensions/Animation+ReduceMotion.swift`, `Extensions/NSPasteboard+Image.swift` — small, focused
   extensions shared across multiple views.
-- `SlideshowTests/ContentViewModelTests.swift` — real Swift Testing coverage for the view model,
-  using genuine temp directories and image files. 26 tests as of Stage 11.
+- `SlideshowTests/ContentViewModelTests.swift` — real Swift Testing coverage for the view model, using
+  genuine temp directories and image files. `SlideshowTests/GrantedFolderStoreTests.swift` (Stage 16)
+  covers the ancestor-dedup logic directly, via an isolated `UserDefaults` suite per test. 35 tests
+  total as of Stage 16.
 
 ## Tech Stack & Why
 
@@ -226,7 +235,47 @@ scope" — sometimes across half the project — immediately after a perfectly o
 right after a file got moved or split. Every single time, an actual `xcodebuild`/Xcode-MCP build
 right after came back clean. The pattern held reliably enough to trust: these were the live editor
 index lagging behind on-disk changes, not real errors — worth remembering for next time before
-chasing a phantom.
+chasing a phantom. Held again through Stages 14–16 without exception.
+
+**The backlog wasn't what the plan said it was.** Session start for Stages 14–16 began with `Plan.md`
+confidently stating "1 outstanding issue" left. Clarity's own issue list said 4. Two of them — the
+Enter-to-start polish and the granted-folder feature — had simply never made it into the plan document
+at all. Nobody had done anything wrong; the tracker and the plan had just quietly drifted apart. Worth
+a standing habit: when a plan document and the actual issue tracker disagree, the tracker wins, and
+it's worth checking whenever picking up new work rather than trusting a plan file's summary of "what's
+left" to still be current.
+
+**The gap that wasn't where it looked.** p534 read, on the surface, like a picker/UX request — "let me
+grant a high-level folder once and browse anywhere inside it." The obvious-looking fix (a custom
+in-app folder browser, or smarter `NSOpenPanel` pre-population) would have been solving the wrong
+problem entirely: `NSOpenPanel` already works regardless of prior grants, full stop, no feature needed
+there at all. The actual gap, once Paul reframed it, was much narrower and already half-documented in
+the codebase's own comments: dropping a single *file* (not a folder) onto an existing window only ever
+grants access to that one file, and enumerating its parent folder fails unless the app *already* has
+broader access — and "already has" only ever meant "this session." The fix (`GrantedFolderStore`)
+ended up much smaller than the imagined one, because the real requirement was smaller too. Worth
+asking "what specifically fails, and when?" before designing a fix for what a feature request sounds
+like it's asking for.
+
+**Read the whole issue, not just its title.** Stage 15 (`p406`) was implemented off a one-line summary
+from a project-wide issue list — title and status only, not the actual description or its comments.
+The comments turned out to contain real, specific constraints ("if there are no windows open, memory
+should be effectively zero") that the eventual design happened to satisfy anyway, and one comment (a
+claimed "high-level folder" recursion causing tens-of-gigabytes blowouts) that didn't match anything
+the current codebase actually does — most likely a leftover description of the `FileSystemReader.swift`
+dead code removed in an earlier, unrelated stage. Nothing broke this time, but it easily could have:
+a documented constraint could just as easily have been missed entirely by working from the summary
+alone. Read the full issue — description and comments both — before implementing, not just its
+one-line title from a list view.
+
+**A folder that could be seen but not selected.** Verifying Stage 16 in the running app surfaced a
+separate, pre-existing bug: the "Select Folder or Image…" panel let you navigate *into* a folder but
+never actually *select* one — only images could be chosen. Root cause: `NSOpenPanel.allowedContentTypes`
+was set to just the image UTTypes, with no `.folder` in the list, and `canChooseDirectories = true`
+doesn't override that — a folder that conforms to none of the listed content types simply can't be the
+thing you pick, regardless of that flag. A one-line fix (`.folder` added to the list) once spotted, but
+a good reminder that `canChooseDirectories` and `allowedContentTypes` are two independent gates that
+both have to agree, not one flag that implies the other.
 
 ## Engineer's Wisdom
 
@@ -259,6 +308,14 @@ chasing a phantom.
   responder chain implementing that selector. A more generic, bespoke command sidestepped the whole
   problem. Worth asking "what older machinery does this specific API hook into?" before reaching for
   the most on-the-nose-sounding one.
+- **A one-line issue-list summary is not the issue.** Working from a title-and-status list rather than
+  the full description and comments risks silently missing constraints someone already wrote down.
+  Read the whole tracked issue before implementing against it, every time — not just when something
+  seems ambiguous.
+- **Reframe a feature request around its actual failure mode before designing the fix.** p534 sounded
+  like a UX feature (picker convenience); the real requirement, once traced to its actual trigger
+  (single-file drag-and-drop across sessions), was narrower and simpler than the imagined version.
+  Designing for the request as first phrased would have built real UI for a problem that didn't exist.
 
 ## If I Were Starting Over…
 

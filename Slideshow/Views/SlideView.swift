@@ -32,6 +32,11 @@ struct SlideView: View {
     /// resumed window's folder). Also `ContentView`-owned, same reason as
     /// `onCopyImage`.
     var shareableURL: (URL) -> URL = { $0 }
+    /// Decodes a slide's image on demand — `ContentView` supplies
+    /// `viewModel.loadedImage(for:)`, since only the `ViewModel` holds the
+    /// bookmark needed to briefly re-open security-scoped access. `Slide`
+    /// deliberately carries no decoded image of its own; see `Slide`.
+    var loadImage: (Slide) -> Image = { _ in Image(systemName: "photo.on.rectangle") }
     /// Shared with `DefaultView`'s hero image (via `ContentView`), so the
     /// current slide morphs from/into the hero image when the slideshow
     /// starts/ends, rather than just cutting or crossfading. See
@@ -85,6 +90,7 @@ struct SlideView: View {
         namespace: Namespace.ID,
         onCopyImage: @escaping (URL) -> Void = { _ in },
         shareableURL: @escaping (URL) -> URL = { $0 },
+        loadImage: @escaping (Slide) -> Image = { _ in Image(systemName: "photo.on.rectangle") },
         onEnd: @escaping (Int) -> Void = { _ in }
     ) {
         self.slides = slides
@@ -97,6 +103,7 @@ struct SlideView: View {
         self.namespace = namespace
         self.onCopyImage = onCopyImage
         self.shareableURL = shareableURL
+        self.loadImage = loadImage
         self.onEnd = onEnd
         self.timer = Timer.publish(every: autoModeInterval, on: .main, in: .common).autoconnect()
     }
@@ -112,7 +119,7 @@ struct SlideView: View {
                 // handling below live on the outer ZStack instead, which
                 // never changes identity — otherwise every keyboard
                 // shortcut breaks on every slide change.
-                slide.image
+                loadImage(slide)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .scaleEffect(scale)

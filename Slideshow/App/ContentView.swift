@@ -44,6 +44,7 @@ struct ContentView: View {
                     namespace: heroNamespace,
                     onCopyImage: copyImage,
                     shareableURL: shareableCopy,
+                    loadImage: viewModel.loadedImage,
                     onEnd: { lastDisplayedIndex in
                         viewModel.selectSlide(at: lastDisplayedIndex)
                     }
@@ -164,7 +165,8 @@ struct ContentView: View {
     /// `SlideView`'s context menu actually calls, since it already has
     /// the specific slide in scope there.
     private func copyImage(_ url: URL) {
-        withFolderAccess {
+        guard let bookmarkData = viewModel.bookmarkData else { return }
+        SecurityScopedAccess.withAccess(to: bookmarkData) {
             NSPasteboard.general.writeImage(at: url)
         }
     }
@@ -172,13 +174,15 @@ struct ContentView: View {
     /// A safe-to-share copy of a slide's image, in the temp directory
     /// (always accessible, no security scoping needed). `ShareLink`'s
     /// Share Sheet lifetime is indeterminate and asynchronous — far
-    /// longer than `withFolderAccess`'s synchronous access window could
-    /// ever cover — so sharing the original file's URL directly isn't an
-    /// option for a folder whose access came from a resolved bookmark.
-    /// Falls back to the original URL if the copy fails for any reason.
+    /// longer than `SecurityScopedAccess`'s synchronous access window
+    /// could ever cover — so sharing the original file's URL directly
+    /// isn't an option for a folder whose access came from a resolved
+    /// bookmark. Falls back to the original URL if the copy fails for any
+    /// reason.
     private func shareableCopy(of url: URL) -> URL {
+        guard let bookmarkData = viewModel.bookmarkData else { return url }
         var result = url
-        withFolderAccess {
+        SecurityScopedAccess.withAccess(to: bookmarkData) {
             guard let data = try? Data(contentsOf: url) else { return }
             let candidate = URL.temporaryDirectory.appending(path: url.lastPathComponent)
             if (try? data.write(to: candidate)) != nil {
@@ -186,26 +190,6 @@ struct ContentView: View {
             }
         }
         return result
-    }
-
-    /// Re-resolves the loaded folder's bookmark and briefly re-opens
-    /// security-scoped access around `body`, mirroring what
-    /// `resume(from:)` already does for the initial load. Needed here
-    /// because `getImagesAtURL` only loads image data once, eagerly —
-    /// its own access window (opened by `resume(from:)`, for a restored
-    /// window) closes immediately afterwards, long before a user gets
-    /// around to actually copying or sharing an image.
-    private func withFolderAccess(_ body: () -> Void) {
-        guard let bookmarkData = viewModel.bookmarkData else { return }
-        var isStale = false
-        guard let folderURL = try? URL(
-            resolvingBookmarkData: bookmarkData,
-            options: [.withSecurityScope],
-            relativeTo: nil,
-            bookmarkDataIsStale: &isStale
-        ), folderURL.startAccessingSecurityScopedResource() else { return }
-        defer { folderURL.stopAccessingSecurityScopedResource() }
-        body()
     }
 
     /// Captures this view's own hosting window the first time it's known to

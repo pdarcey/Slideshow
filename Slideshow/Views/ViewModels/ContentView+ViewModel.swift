@@ -70,10 +70,49 @@ extension ContentView {
             guard images.indices.contains(index) else {
                 return Image(systemName: "photo.on.rectangle")
             }
-            return images[index].image
+            return loadedImage(for: images[index])
         }
 
+        /// Decoded images for whichever slides were most recently
+        /// requested, oldest-first. Bounded to `maxCachedImages` regardless
+        /// of folder size — trimmed on every insert — so memory use stays
+        /// flat rather than scaling with how many photos are in the
+        /// loaded folder. Two is enough to cover a crossfade's momentary
+        /// overlap between the outgoing and incoming slide without holding
+        /// anything beyond that.
+        private var imageCache: [(id: UUID, image: Image)] = []
+        private let maxCachedImages = 2
+
         private static let supportedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic"]
+
+        /// Decodes `slide`'s image on demand, re-opening security-scoped
+        /// access to this window's folder for just long enough to read it
+        /// (the original access `getImagesAtURL` had is long since closed
+        /// by the time a slide is actually displayed). Caches the result —
+        /// see `imageCache` — so navigating back to a recently-shown slide
+        /// doesn't re-decode it.
+        func loadedImage(for slide: Slide) -> Image {
+            if let cached = imageCache.first(where: { $0.id == slide.id })?.image {
+                return cached
+            }
+            var decoded: Image?
+            if let bookmarkData {
+                SecurityScopedAccess.withAccess(to: bookmarkData) {
+                    decoded = NSImage(contentsOfFile: slide.url.path).map(Image.init(nsImage:))
+                }
+            }
+            let resolved = decoded ?? Image(systemName: "photo.on.rectangle")
+            cache(resolved, for: slide.id)
+            return resolved
+        }
+
+        private func cache(_ image: Image, for id: UUID) {
+            imageCache.removeAll { $0.id == id }
+            imageCache.append((id, image))
+            if imageCache.count > maxCachedImages {
+                imageCache.removeFirst(imageCache.count - maxCachedImages)
+            }
+        }
 
         /// Displays the file/folder chooser and loads whatever was picked.
         func selectFileOrFolder() {
@@ -128,6 +167,12 @@ extension ContentView {
         /// "slideshow" when a lone file does still reach here, surface it
         /// via `emptyReason` so the picker screen can explain what happened.
         func getImagesAtURL(_ folderURL: URL, selectedImage: URL? = nil) {
+            // A new folder invalidates every cached decode from whichever
+            // one was loaded before, on every outcome below (success or
+            // not) — otherwise switching folders in an existing window
+            // would keep accumulating stale entries from earlier ones.
+            imageCache.removeAll()
+
             let fileManager = FileManager.default
 
             guard let files = try? fileManager.contentsOfDirectory(
@@ -143,15 +188,15 @@ extension ContentView {
                 return
             }
 
-            let sortedImages = files
+            // Images are decoded on demand (loadedImage(for:)), not here —
+            // so this is a plain extension-based filter, not a validity
+            // check. A file with a supported extension that turns out not
+            // to actually decode later just falls back to the placeholder
+            // icon at display time, same as any other decode failure.
+            let loadedSlides = files
                 .filter { Self.supportedExtensions.contains($0.pathExtension.lowercased()) }
                 .sorted { $0.lastPathComponent < $1.lastPathComponent }
-
-            var loadedSlides: [Slide] = []
-            for url in sortedImages {
-                guard let nsImage = NSImage(contentsOfFile: url.path) else { break }
-                loadedSlides.append(Slide(imageName: url.lastPathComponent, image: Image(nsImage: nsImage), url: url))
-            }
+                .map { Slide(imageName: $0.lastPathComponent, url: $0) }
 
             images = loadedSlides
             if loadedSlides.isEmpty {
@@ -170,7 +215,7 @@ extension ContentView {
                     relativeTo: nil
                 )
             }
-            if let selectedImage, let startIndex = sortedImages.firstIndex(of: selectedImage) {
+            if let selectedImage, let startIndex = loadedSlides.firstIndex(where: { $0.url == selectedImage }) {
                 index = startIndex
             } else {
                 index = 0

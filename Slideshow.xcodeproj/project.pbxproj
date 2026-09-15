@@ -38,6 +38,7 @@
 		C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC262E4784FF006081A4 /* MetadataTextView.swift */; };
 		C9B0EC2B2E48B002006081A4 /* ScrollZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */; };
 		C9B0EC2D2E48B353006081A4 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B0EC2C2E48B353006081A4 /* HelpView.swift */; };
+		C9F26E463058D37D008D6FF0 /* SecurityScopedAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F26E453058D37D008D6FF0 /* SecurityScopedAccess.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,6 +96,7 @@
 		C9B0EC2A2E48B002006081A4 /* ScrollZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollZoomView.swift; sourceTree = "<group>"; };
 		C9B0EC2C2E48B353006081A4 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
 		C9D08A663040871E00E37B34 /* Slideshow.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Slideshow.xctestplan; sourceTree = "<group>"; };
+		C9F26E453058D37D008D6FF0 /* SecurityScopedAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScopedAccess.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -231,6 +233,7 @@
 			children = (
 				C9697E5530406F970025F8F3 /* WindowStateStore.swift */,
 				C92649D83041BF330058641B /* ShareSheetPresenter.swift */,
+				C9F26E453058D37D008D6FF0 /* SecurityScopedAccess.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -437,6 +440,7 @@
 				C9B0EC272E4784FF006081A4 /* MetadataTextView.swift in Sources */,
 				C92649D93041BF330058641B /* ShareSheetPresenter.swift in Sources */,
 				C9697E5630406F970025F8F3 /* WindowStateStore.swift in Sources */,
+				C9F26E463058D37D008D6FF0 /* SecurityScopedAccess.swift in Sources */,
 				C90BA3A52A97841900A006DC /* SlideshowApp.swift in Sources */,
 				C90BA3D22A97881500A006DC /* SlideView.swift in Sources */,
 				C9697E49303FFCA90025F8F3 /* Slide.swift in Sources */,

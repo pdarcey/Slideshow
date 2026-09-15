@@ -168,12 +168,56 @@ All merged to `main` as of 2026-08-29, and pushed to `origin/main`.
     selection works again, and a dropped file from a folder granted in a previous session now loads
     instead of showing "Can't Access That Folder."
 
-Stages 14–16 committed to `main` as of 2026-09-15 (`09633e1`, `9fef54e`, `5b8d16d`), not yet pushed.
+Stages 14–16 committed to `main` as of 2026-09-15 (`09633e1`, `9fef54e`, `5b8d16d`), and pushed to
+`origin/main` alongside Stage 17 below.
+
+17. Stage 17: cleared every "Current"-workflow Clarity issue (p369/p370/p371/p372) in one session, each
+    planned and confirmed with Paul as its own lettered sub-stage before moving to the next:
+    - A (p372): folder path on title-bar right-click. SwiftUI's `.navigationDocument(_:)` gives the
+      standard macOS proxy icon and right-click/Cmd-click path popup for free — `ContentView.ViewModel`
+      gained a stored `folderURL: URL?` alongside the existing `folderName` to back it, and a new
+      `Extensions/View+NavigationDocument.swift` adds an optional-`URL` overload (the built-in modifier
+      only takes a non-optional `URL`) so the modifier chain works the same whether or not a folder's
+      loaded yet.
+    - B (p369): cursor auto-hides after ~2 idle seconds while full-screen, reveals on movement or
+      full-screen exit — matching Preview/Photos convention (confirmed with Paul before implementing,
+      rather than hiding it unconditionally for the whole full-screen session). New
+      `Services/CursorIdleHider.swift` tracks real `NSWindow` full-screen notifications rather than
+      `SlideView`'s own `toggleFullScreen` calls, since Cmd-F can exit full-screen independently via the
+      menu. `captureWindowIfNeeded()`/`exitFullScreen()` moved out into a new
+      `Views/SlideView+FullScreen.swift` extension file to keep `SlideView`'s body under SwiftLint's
+      250-line type-body limit after the new wiring.
+    - C (p370): real fix, not just diagnostics. Paul's own testing traced this past the original "drag
+      a lone file" framing to a *specific* repro: a purely-organizational top-level folder (containing
+      only per-subject subfolders, none of which had images directly inside *it*) never got persisted to
+      `GrantedFolderStore` at all — `getImagesAtURL` only ever called `recordGrantedFolder` inside the
+      branch where the folder itself had images, so only whichever leaf folders were individually
+      visited survived a relaunch. Diagnosed with OSLog tracing added to a new `enumerate(_:)` helper
+      (extracted out of `getImagesAtURL` to keep it under the function-length limit), plus matching
+      logging in `SecurityScopedAccess`/`GrantedFolderStore` — kept in place afterwards per this
+      project's established Diagnostics philosophy, not stripped out once the bug was found. Fix: record
+      on any successful enumeration, regardless of whether that folder has images directly inside it
+      (already a no-op when covered by an existing grant). New test
+      `organizationalFolderWithNoDirectImagesIsStillRecordedAsGranted`.
+    - D (p371): the default-button highlight pulse wasn't showing on macOS 15.7.9, even though Enter
+      already triggered the right action either way. Root cause found by a cheap, targeted experiment
+      Paul ran on the real 15.7.9 machine: `.buttonBorderShape(.circle)` (from Stage 7's circular
+      icon-button redesign) was suppressing the highlight entirely — removing it fixed the highlight
+      immediately. `.labelStyle(.iconOnly)` came back afterwards (Paul wanted the icon-only look kept),
+      confirmed on 15.7.9 that the highlight still shows correctly with icon-only + standard shape, just
+      not with the circular border.
+    - All four confirmed by Paul on both his main machine and a real macOS 15.7.9 machine (borrowed
+      specifically to reproduce C and D), then marked Completed in Clarity. 36/36 unit tests, zero
+      SwiftLint warnings throughout.
+
+Stage 17 committed and pushed to `origin/main` as of 2026-09-16 (`710ecc0` through `24b962a`, five
+commits).
 
 ## Next stages: confirmed order
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
-(fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage.
+(fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage. As of
+Stage 17, this (`p292`, Backlog) is the *only* item left in Clarity's backlog for this project.
 
 No further stage confirmed yet — check Clarity for the current outstanding backlog before starting new
 work.

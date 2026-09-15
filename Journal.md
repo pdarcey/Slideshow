@@ -88,13 +88,22 @@ structure:
   granted-folder fallback. Used to be duplicated as `ContentView`'s private `withFolderAccess(_:)`.
 - `Services/GrantedFolderStore.swift` (Stage 16) — persists every folder ever granted, independent of
   any one window, deduplicated to the highest granted ancestor. See "The gap that wasn't where it
-  looked" below.
-- `Extensions/Animation+ReduceMotion.swift`, `Extensions/NSPasteboard+Image.swift` — small, focused
+  looked" below, and Stage 17's follow-up, "The gap inside the gap."
+- `Services/CursorIdleHider.swift` (Stage 17) — hides the mouse cursor after a few idle seconds while
+  full-screen, revealing it on movement or full-screen exit. Watches real `NSWindow` full-screen
+  notifications rather than `SlideView`'s own toggle calls, since Cmd-F can exit full-screen
+  independently via the menu.
+- `Views/SlideView+FullScreen.swift` (Stage 17) — `captureWindowIfNeeded()`/`exitFullScreen()`, split
+  out of `SlideView.swift` itself purely to stay under SwiftLint's type-body-length limit once
+  `CursorIdleHider` wiring was added — no behaviour change, just a file split.
+- `Extensions/Animation+ReduceMotion.swift`, `Extensions/NSPasteboard+Image.swift`,
+  `Extensions/View+NavigationDocument.swift` (the last one, Stage 17, is an optional-`URL` overload of
+  `.navigationDocument(_:)`, which annoyingly only takes a non-optional `URL`) — small, focused
   extensions shared across multiple views.
 - `SlideshowTests/ContentViewModelTests.swift` — real Swift Testing coverage for the view model, using
   genuine temp directories and image files. `SlideshowTests/GrantedFolderStoreTests.swift` (Stage 16)
-  covers the ancestor-dedup logic directly, via an isolated `UserDefaults` suite per test. 35 tests
-  total as of Stage 16.
+  covers the ancestor-dedup logic directly, via an isolated `UserDefaults` suite per test. 36 tests
+  total as of Stage 17.
 
 ## Tech Stack & Why
 
@@ -277,6 +286,34 @@ thing you pick, regardless of that flag. A one-line fix (`.folder` added to the 
 a good reminder that `canChooseDirectories` and `allowedContentTypes` are two independent gates that
 both have to agree, not one flag that implies the other.
 
+**The gap inside the gap.** Stage 16 fixed the headline case of "drag a lone file, fall back to a
+previously-granted ancestor folder" — and Paul's own real-world testing (Stage 17, p370) found a second
+gap hiding inside the first one. His photo library is organised as folder-of-folders: a top-level
+"Sets" folder containing one subfolder per photoshoot, each of *those* containing the actual images —
+so the top-level folder itself never has any images directly inside it. `getImagesAtURL` only ever
+called `recordGrantedFolder` inside the branch where the *current* folder's own `loadedSlides` was
+non-empty — which meant that top-level folder, despite loading successfully every time it was dropped,
+was never actually persisted to `GrantedFolderStore`. Only the individual subfolders Paul had happened
+to visit directly got remembered. After a relaunch, dragging an image from any subfolder he *hadn't*
+separately visited still failed, because neither it nor its true ancestor was on record — only
+unrelated sibling subfolders were. The first diagnostic pass logged counts ("20 stored, match=none")
+and chased a plausible-but-wrong theory (symlink resolution on the `/Volumes/...` external drive); the
+second pass logged the *actual list* of all 20 stored paths, and the pattern was obvious on sight —
+every single one was a leaf folder, no top-level folder anywhere in the list. The fix was one line moved
+to a different branch: record on any successful enumeration, not just one that happens to find images
+directly inside it.
+
+**The button that couldn't shine.** p371 sat unexplained for a while: hitting Enter always did the
+right thing (selected a folder, or started the slideshow), but the "default button" pulsing highlight —
+the usual macOS cue for "this is what Enter will do" — simply never appeared, and only on Paul's
+secondary machine running macOS 15.7.9. Reasoning about SwiftUI/AppKit's internal default-button
+rendering from first principles would have been a rabbit hole; instead, one cheap, two-minute
+experiment settled it directly: comment out `.buttonBorderShape(.circle)` (from Stage 7's circular
+icon-button redesign) and rebuild. The highlight came back immediately. Circular buttons, on that OS
+version at least, simply don't get the pulse animation SwiftUI draws for every other border shape — a
+rendering-path gap, not a logic bug, and not something reasoning about the code alone would have
+surfaced nearly as fast as just testing the one suspicious modifier directly.
+
 ## Engineer's Wisdom
 
 - **When something's intermittent, don't reason about it — log it and reproduce it.** Both Stage 5
@@ -316,6 +353,21 @@ both have to agree, not one flag that implies the other.
   like a UX feature (picker convenience); the real requirement, once traced to its actual trigger
   (single-file drag-and-drop across sessions), was narrower and simpler than the imagined version.
   Designing for the request as first phrased would have built real UI for a problem that didn't exist.
+- **A logging *count* can mask the very pattern a logging *list* reveals instantly.** "20 stored,
+  match=none" (p370) is consistent with a dozen different theories; the actual list of all 20 paths
+  made the real cause ("every single one is a leaf folder") obvious in one glance. When a summary
+  statistic doesn't explain a bug, log the raw data behind it before reasoning further about the
+  summary.
+- **A visual/rendering quirk is often faster to isolate by testing one suspicious modifier directly
+  than by reasoning about the framework's internals.** p371's missing default-button highlight took one
+  two-minute experiment (comment out `.buttonBorderShape(.circle)`, rebuild) to root-cause, on the exact
+  OS version the bug was reported on — reasoning about SwiftUI/AppKit's rendering pipeline from first
+  principles would have taken far longer for the same answer.
+- **Diagnostic `OSLog` added specifically to chase a bug is worth keeping afterwards, same as the
+  window-lifecycle logging from Stage 5.** The `enumerate(_:)`/`GrantedFolderStore`/
+  `SecurityScopedAccess` logging added to diagnose p370 stayed in the codebase once the bug was found
+  and fixed — sandbox/grant logic is exactly the kind of intermittent-by-nature code worth being able
+  to debug via Console.app again without re-instrumenting first.
 
 ## If I Were Starting Over…
 

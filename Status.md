@@ -1,15 +1,16 @@
 # Status
 
-_Last updated: 2026-09-15_
+_Last updated: 2026-09-16_
 
 ## Build & test health
 
 - Builds clean (Xcode MCP `BuildProject`, Debug configuration).
-- `SlideshowTests` (`ContentViewModelTests` + `GrantedFolderStoreTests`, Swift Testing): 35/35 passing.
+- `SlideshowTests` (`ContentViewModelTests` + `GrantedFolderStoreTests`, Swift Testing): 36/36 passing.
 - `SlideshowUITests`: skipped by the default test plan (unmodified Xcode boilerplate; drives real
   windows/focus and takes over the machine when run).
 - SwiftLint runs on every build (added Stage 6); zero warnings across the project.
-- `CFBundleVersion` bumps automatically from `git rev-list --count main` on every build.
+- `CFBundleVersion` bumps automatically from `git rev-list --count main` on every build. `MARKETING_VERSION`
+  is now `1.1.0` (bumped deliberately by Paul, Stage 17).
 
 ## What works today
 
@@ -41,7 +42,16 @@ _Last updated: 2026-09-15_
 - Every folder ever granted access — not just currently-open windows' folders — is remembered
   indefinitely (deduplicated to the highest granted ancestor), so dragging a single *file* into an
   existing window works even when its parent folder was only ever granted in a previous session
-  (Stage 16). Confirmed by Paul.
+  (Stage 16), *including* when the granted folder is purely organizational (contains only subfolders,
+  none of which have images directly inside the top-level folder itself) — fixed in Stage 17 (p370)
+  after Paul traced the original Stage 16 fallback to a real gap in exactly that scenario. Confirmed by
+  Paul on both his main machine and a real macOS 15.7.9 machine.
+- Cursor auto-hides after a couple of idle seconds while a slideshow is full-screen, and reveals again
+  on movement or full-screen exit (Stage 17, p369) — tracks real `NSWindow` full-screen state, so it
+  behaves correctly whether full-screen was entered via starting a slideshow or exited independently via
+  Cmd-F.
+- Right-click (or Cmd-click) the window's title text for the standard macOS folder-path popup — each
+  folder in the path (and the selected image, if one was picked) opens in Finder (Stage 17, p372).
 - Finder/Dock folder opens land in a new window and clean up a redundant empty one if present.
 - App-level Open (Cmd+O) / Continue (Cmd+R) / Re-start from Beginning (Cmd+Return) commands, correctly
   enabled/disabled based on the frontmost window's state.
@@ -52,27 +62,27 @@ _Last updated: 2026-09-15_
 
 ## Known gaps (tracked in Clarity, not yet started)
 
-- Multiple selectable slide-transition styles (fade/slide/flip/grow-shrink) — deliberately deferred,
-  low priority, large scope on its own.
+- Multiple selectable slide-transition styles (fade/slide/flip/grow-shrink, `p292`) — deliberately
+  deferred, low priority, large scope on its own. As of Stage 17, this is the *only* item left in
+  Clarity's backlog for this project — every other tracked issue is Completed.
 - Not fixable from this codebase: the app can't appear in System Settings' per-app Text Size list
   (Accessibility → Display → Text Size) — confirmed via Apple Developer Forums (including a DTS
   engineer reply) that this is currently a curated allowlist of Apple's own apps only, with no
   third-party registration mechanism.
-- Paul is doing further real-world testing around the granted-folder feature (p534/Stage 16); a
-  previously-closed memory-footprint comment describing a "high-level folder causes multi-GB blowout"
-  scenario doesn't match anything in the current (non-recursive) folder-loading code, but is worth
-  re-opening (`p406`) if it actually reproduces in practice.
 
 ## Repo state
 
-- `main` is current (`5b8d16d` as of this session — Stages 14/15/16 — committed but **not yet pushed**
-  to `origin/main`); no other active branches.
+- `main` is current (`24b962a` as of this session — Stage 17 — committed **and pushed** to
+  `origin/main`, along with Stages 14–16 which were still unpushed at this session's start); no other
+  active branches.
 - Working tree clean once this session's documentation commit lands.
 - `Slideshow/` is organised into `App/`/`Views/`/`Views/ViewModels/`/`Models/`/`Services/`/
   `Extensions/` (Stage 11 housekeeping — file moves only, no code changes). `Info.plist`,
   `Slideshow.entitlements`, `Assets.xcassets`, and `Preview Content/` stay flat under `Slideshow/`,
   matching the team's standard template. `Services/` gained `SecurityScopedAccess.swift` and
-  `GrantedFolderStore.swift` this session.
-- No `.gitignore` in this repo — `.DS_Store`, `.claude/`, and Xcode user data are excluded via the
-  user's global git config instead, not a project-local ignore file. Not a gap to fix unless that
-  global config ever changes.
+  `GrantedFolderStore.swift` in Stage 16, and `CursorIdleHider.swift` in Stage 17; `Views/` gained
+  `SlideView+FullScreen.swift`; `Extensions/` gained `View+NavigationDocument.swift`.
+- A project-local `.gitignore` now exists (added Stage 17) — currently just `Logs/`, where Console.app
+  captures get pasted in during debugging sessions (not meant to be tracked). Everything else
+  (`.DS_Store`, `.claude/`, Xcode user data) is still excluded via the user's global git config, not
+  this file.

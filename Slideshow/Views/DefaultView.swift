@@ -82,6 +82,7 @@ struct DefaultView: View {
                         viewModel.selectFileOrFolder()
                     }
                     .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
                     .help("Select Folder or Image…")
                 } else {
                     Button("Select Folder or Image…", systemImage: "folder") {
@@ -96,6 +97,7 @@ struct DefaultView: View {
                         onStartAtCurrent()
                     }
                     .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
                     .help("Start")
 
                     Button("Re-start from Beginning", systemImage: "arrow.counterclockwise") {

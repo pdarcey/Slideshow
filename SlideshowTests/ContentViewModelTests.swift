@@ -80,6 +80,18 @@ final class ContentViewModelTests {
         #expect(viewModel.index == 0)
     }
 
+    @Test func loadingAFolderOfImagesSortsThemNaturally() throws {
+        try writeTestImage(named: "file12.png")
+        try writeTestImage(named: "file1.png")
+        try writeTestImage(named: "file2.png")
+        try writeTestImage(named: "file100.png")
+
+        viewModel.getImagesAtURL(tempDirectory)
+
+        #expect(viewModel.images.map(\.imageName) == ["file1.png", "file2.png", "file12.png", "file100.png"])
+        #expect(viewModel.index == 0)
+    }
+
     @Test func loadingAFolderSetsEachSlidesURLToItsRealLocation() throws {
         try writeTestImage(named: "a.png")
 

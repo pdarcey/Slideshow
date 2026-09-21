@@ -668,6 +668,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Slideshow/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Slideshow;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Slideshow uses Apple Events to receive a folder of images dropped on its Dock icon or opened from Finder.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -717,6 +718,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Slideshow/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Slideshow;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Slideshow uses Apple Events to receive a folder of images dropped on its Dock icon or opened from Finder.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

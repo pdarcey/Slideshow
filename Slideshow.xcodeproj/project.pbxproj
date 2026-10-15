@@ -11,7 +11,6 @@
 		C90BA3A72A97841900A006DC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3A62A97841900A006DC /* ContentView.swift */; };
 		C90BA3A92A97841B00A006DC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C90BA3A82A97841B00A006DC /* Assets.xcassets */; };
 		C90BA3AC2A97841B00A006DC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C90BA3AB2A97841B00A006DC /* Preview Assets.xcassets */; };
-		C90BA3B72A97841B00A006DC /* SlideshowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3B62A97841B00A006DC /* SlideshowTests.swift */; };
 		C90BA3C12A97841B00A006DC /* SlideshowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3C02A97841B00A006DC /* SlideshowUITests.swift */; };
 		C90BA3C32A97841B00A006DC /* SlideshowUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3C22A97841B00A006DC /* SlideshowUITestsLaunchTests.swift */; };
 		C90BA3D02A97852C00A006DC /* PreviewImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90BA3CF2A97852C00A006DC /* PreviewImages.swift */; };
@@ -28,6 +27,8 @@
 		C92649D73041B7AC0058641B /* NSPasteboard+Image.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D63041B7AC0058641B /* NSPasteboard+Image.swift */; };
 		C92649D93041BF330058641B /* ShareSheetPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649D83041BF330058641B /* ShareSheetPresenter.swift */; };
 		C92649DB3041C1C50058641B /* Animation+ReduceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92649DA3041C1C50058641B /* Animation+ReduceMotion.swift */; };
+		C9331B28308192E300BFC88B /* ClarityTesting in Frameworks */ = {isa = PBXBuildFile; productRef = C9331B27308192E300BFC88B /* ClarityTesting */; };
+		C9331B2B308192F500BFC88B /* ClarityTesting in Frameworks */ = {isa = PBXBuildFile; productRef = C9331B2A308192F500BFC88B /* ClarityTesting */; };
 		C9697E49303FFCA90025F8F3 /* Slide.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E48303FFCA90025F8F3 /* Slide.swift */; };
 		C9697E4B303FFCB80025F8F3 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4A303FFCB80025F8F3 /* ContentView+ViewModel.swift */; };
 		C9697E4D303FFD8D0025F8F3 /* ContentViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */; };
@@ -71,7 +72,6 @@
 		C90BA3AB2A97841B00A006DC /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C90BA3AD2A97841B00A006DC /* Slideshow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Slideshow.entitlements; sourceTree = "<group>"; };
 		C90BA3B22A97841B00A006DC /* SlideshowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SlideshowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C90BA3B62A97841B00A006DC /* SlideshowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowTests.swift; sourceTree = "<group>"; };
 		C90BA3BC2A97841B00A006DC /* SlideshowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SlideshowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90BA3C02A97841B00A006DC /* SlideshowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowUITests.swift; sourceTree = "<group>"; };
 		C90BA3C22A97841B00A006DC /* SlideshowUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -121,6 +121,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9331B28308192E300BFC88B /* ClarityTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,6 +129,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9331B2B308192F500BFC88B /* ClarityTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +143,7 @@
 				C90BA3A32A97841900A006DC /* Slideshow */,
 				C90BA3B52A97841B00A006DC /* SlideshowTests */,
 				C90BA3BF2A97841B00A006DC /* SlideshowUITests */,
+				C9331B29308192F500BFC88B /* Frameworks */,
 				C90BA3A22A97841900A006DC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -183,7 +186,6 @@
 		C90BA3B52A97841B00A006DC /* SlideshowTests */ = {
 			isa = PBXGroup;
 			children = (
-				C90BA3B62A97841B00A006DC /* SlideshowTests.swift */,
 				C9697E4C303FFD8D0025F8F3 /* ContentViewModelTests.swift */,
 				C9F26E493058D733008D6FF0 /* GrantedFolderStoreTests.swift */,
 			);
@@ -271,6 +273,13 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		C9331B29308192F500BFC88B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -307,6 +316,9 @@
 				C90BA3B42A97841B00A006DC /* PBXTargetDependency */,
 			);
 			name = SlideshowTests;
+			packageProductDependencies = (
+				C9331B27308192E300BFC88B /* ClarityTesting */,
+			);
 			productName = SlideshowTests;
 			productReference = C90BA3B22A97841B00A006DC /* SlideshowTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -325,6 +337,9 @@
 				C90BA3BE2A97841B00A006DC /* PBXTargetDependency */,
 			);
 			name = SlideshowUITests;
+			packageProductDependencies = (
+				C9331B2A308192F500BFC88B /* ClarityTesting */,
+			);
 			productName = SlideshowUITests;
 			productReference = C90BA3BC2A97841B00A006DC /* SlideshowUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -361,6 +376,9 @@
 				Base,
 			);
 			mainGroup = C90BA3982A97841900A006DC;
+			packageReferences = (
+				C9331B26308192E300BFC88B /* XCRemoteSwiftPackageReference "ClarityLinks" */,
+			);
 			productRefGroup = C90BA3A22A97841900A006DC /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -483,7 +501,6 @@
 			files = (
 				C9F26E4A3058D733008D6FF0 /* GrantedFolderStoreTests.swift in Sources */,
 				C9697E4D303FFD8D0025F8F3 /* ContentViewModelTests.swift in Sources */,
-				C90BA3B72A97841B00A006DC /* SlideshowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -846,6 +863,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C9331B26308192E300BFC88B /* XCRemoteSwiftPackageReference "ClarityLinks" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pdarcey/ClarityLinks";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C9331B27308192E300BFC88B /* ClarityTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9331B26308192E300BFC88B /* XCRemoteSwiftPackageReference "ClarityLinks" */;
+			productName = ClarityTesting;
+		};
+		C9331B2A308192F500BFC88B /* ClarityTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9331B26308192E300BFC88B /* XCRemoteSwiftPackageReference "ClarityLinks" */;
+			productName = ClarityTesting;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C90BA3992A97841900A006DC /* Project object */;
 }

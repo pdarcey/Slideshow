@@ -128,7 +128,7 @@ struct SlideView: View {
                 // shortcut breaks on every slide change.
                 loadImage(slide)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFit()
                     .scaleEffect(scale)
                     .offset(offset)
                     .id(slide.id)

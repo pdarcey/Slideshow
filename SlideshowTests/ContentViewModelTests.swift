@@ -6,6 +6,7 @@
 //
 
 import Testing
+import ClarityTesting
 import AppKit
 @testable import Slideshow
 
@@ -69,27 +70,35 @@ final class ContentViewModelTests {
 
     // MARK: - getImagesAtURL
 
-    @Test func loadingAFolderOfImagesSortsThemAlphabetically() throws {
-        try writeTestImage(named: "c.png")
-        try writeTestImage(named: "a.png")
-        try writeTestImage(named: "b.png")
+    /// Each argument is the expected slide order; files are written in
+    /// reverse so the sort has real work to do. Covers plain alphabetical
+    /// order and natural number order (file2 before file12).
+    @Test(arguments: [
+        ["a.png", "b.png", "c.png"],
+        ["file1.png", "file2.png", "file12.png", "file100.png"]
+    ])
+    func loadingAFolderOfImagesSortsThemInOrder(expectedOrder: [String]) throws {
+        for name in expectedOrder.reversed() {
+            try writeTestImage(named: name)
+        }
 
         viewModel.getImagesAtURL(tempDirectory)
 
-        #expect(viewModel.images.map(\.imageName) == ["a.png", "b.png", "c.png"])
+        #expect(viewModel.images.map(\.imageName) == expectedOrder)
         #expect(viewModel.index == 0)
     }
 
-    @Test func loadingAFolderOfImagesSortsThemNaturally() throws {
-        try writeTestImage(named: "file12.png")
-        try writeTestImage(named: "file1.png")
-        try writeTestImage(named: "file2.png")
-        try writeTestImage(named: "file100.png")
+    /// Finder ignores case when ordering names, so slides must too — otherwise
+    /// every capitalised filename jumps ahead of every lowercase one.
+    @Test(.clarity(596, "Slide order doesn't match Finder"))
+    func loadingAFolderOfImagesSortsThemLikeFinder() throws {
+        try writeTestImage(named: "c.png")
+        try writeTestImage(named: "B.png")
+        try writeTestImage(named: "a.png")
 
         viewModel.getImagesAtURL(tempDirectory)
 
-        #expect(viewModel.images.map(\.imageName) == ["file1.png", "file2.png", "file12.png", "file100.png"])
-        #expect(viewModel.index == 0)
+        #expect(viewModel.images.map(\.imageName) == ["a.png", "B.png", "c.png"])
     }
 
     @Test func loadingAFolderSetsEachSlidesURLToItsRealLocation() throws {

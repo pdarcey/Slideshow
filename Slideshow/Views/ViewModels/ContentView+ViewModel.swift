@@ -275,7 +275,9 @@ extension ContentView {
             // icon at display time, same as any other decode failure.
             let loadedSlides = files
                 .filter { Self.supportedExtensions.contains($0.pathExtension.lowercased()) }
-                .sorted { $0.lastPathComponent.compare($1.lastPathComponent, options: .numeric) == .orderedAscending }
+                // Finder's own ordering: numeric-aware (file2 before file12),
+                // case-insensitive, and locale-aware.
+                .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
                 .map { Slide(imageName: $0.lastPathComponent, url: $0) }
 
             images = loadedSlides

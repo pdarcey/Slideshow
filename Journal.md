@@ -314,6 +314,26 @@ version at least, simply don't get the pulse animation SwiftUI draws for every o
 rendering-path gap, not a logic bug, and not something reasoning about the code alone would have
 surfaced nearly as fast as just testing the one suspicious modifier directly.
 
+**The alphabet that shouted.** Between sessions, Paul noticed `file12` turning up before `file2` and
+fixed it with `compare(_:options: .numeric)` — the classic "natural sort". It worked, but it only
+fixed half of the gap with Finder. A plain `compare` is still case-sensitive, and in Unicode every
+capital letter comes before every lowercase one, so `Beach.jpg` would happily barge in ahead of
+`apple.jpg`. Think of a library shelf where every title in capitals has been put on a shelf of its
+own. The fix was to stop building Finder's ordering by hand and just ask for it:
+`localizedStandardCompare(_:)` is Apple's "sort like Finder" API — numeric-aware, case-insensitive,
+and it follows the user's locale. The new regression test (`B.png`, `a.png`, `c.png` → `a, B, c`) was
+written first and watched failing with `B, a, c` before the fix went in, so it's proven to catch the
+bug rather than just pass. It's the first test in the project tagged with its Clarity issue
+(`.clarity(596, …)`) via the newly linked `ClarityTesting`.
+
+A small side quest: that one extra test pushed `ContentViewModelTests` to 253 lines, three over
+SwiftLint's `type_body_length` limit. Rather than raise the limit, the existing alphabetical and
+natural-order tests were merged into a single parameterised `@Test(arguments:)`. It was the same test
+written twice with different file names, so merging it removed real duplication rather than just
+lines. And the session opened with a lint warning nobody had caused: upgrading SwiftLint to 0.65.1
+added a `legacy_swiftui_aspect_ratio` rule, which flagged `.aspectRatio(contentMode: .fit)` — swapped
+for the identical `.scaledToFit()`.
+
 ## Engineer's Wisdom
 
 - **When something's intermittent, don't reason about it — log it and reproduce it.** Both Stage 5
@@ -368,6 +388,12 @@ surfaced nearly as fast as just testing the one suspicious modifier directly.
   `SecurityScopedAccess` logging added to diagnose p370 stayed in the codebase once the bug was found
   and fixed — sandbox/grant logic is exactly the kind of intermittent-by-nature code worth being able
   to debug via Console.app again without re-instrumenting first.
+- **When the platform already has a name for the behaviour you want, use it instead of rebuilding it
+  from options.** "Sort like Finder" isn't `.numeric` plus `.caseInsensitive` plus whatever else you
+  remember — it's `localizedStandardCompare`, and it will keep matching Finder as Apple changes it.
+  (Same instinct as `localizedStandardContains` for filtering user input.)
+- **A new lint warning on unchanged code usually means the linter changed, not the code.** Check the
+  tool's version before going looking for a regression.
 
 ## If I Were Starting Over…
 

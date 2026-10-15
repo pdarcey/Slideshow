@@ -1,21 +1,26 @@
 # Status
 
-_Last updated: 2026-09-16_
+_Last updated: 2026-10-16_
 
 ## Build & test health
 
 - Builds clean (Xcode MCP `BuildProject`, Debug configuration).
-- `SlideshowTests` (`ContentViewModelTests` + `GrantedFolderStoreTests`, Swift Testing): 36/36 passing.
+- `SlideshowTests` (`ContentViewModelTests` + `GrantedFolderStoreTests`, Swift Testing): 36/36 test
+  cases passing (one test is parameterised over two cases). The 2023 XCTest template file is gone (Stage 18).
+- `ClarityTesting` linked into both test targets (Stage 18); bug-driven tests are tagged with their
+  Clarity issue.
 - `SlideshowUITests`: skipped by the default test plan (unmodified Xcode boilerplate; drives real
   windows/focus and takes over the machine when run).
-- SwiftLint runs on every build (added Stage 6); zero warnings across the project.
+- SwiftLint (0.65.1) runs on every build (added Stage 6); zero warnings across the project.
 - `CFBundleVersion` bumps automatically from `git rev-list --count main` on every build. `MARKETING_VERSION`
-  is now `1.1.0` (bumped deliberately by Paul, Stage 17).
+  is now `1.2.0` (bumped deliberately by Paul after Stage 17).
 
 ## What works today
 
 - Full-screen slideshow of a folder's images: manual navigation (arrow keys, space, tap-to-advance),
   auto-advance, metadata overlay, in-app help overlay.
+- Slides play in the same order Finder lists them by Name: numbers in natural order (`file2` before
+  `file12`), case-insensitive, and locale-aware (Paul's `2c85bea`, then Stage 18, p596).
 - Enter/Return starts the slideshow from the picker screen — triggers whichever of "Select Folder or
   Image…"/"Start" is currently the prominent default action (Stage 14).
 - Zoom & pan: scroll-wheel, pinch-to-magnify, and Cmd-+/Cmd- keyboard shortcuts all feed one clamped
@@ -63,7 +68,7 @@ _Last updated: 2026-09-16_
 ## Known gaps (tracked in Clarity, not yet started)
 
 - Multiple selectable slide-transition styles (fade/slide/flip/grow-shrink, `p292`) — deliberately
-  deferred, low priority, large scope on its own. As of Stage 17, this is the *only* item left in
+  deferred, low priority, large scope on its own. As of Stage 18, this is the *only* item left in
   Clarity's backlog for this project — every other tracked issue is Completed.
 - Not fixable from this codebase: the app can't appear in System Settings' per-app Text Size list
   (Accessibility → Display → Text Size) — confirmed via Apple Developer Forums (including a DTS
@@ -72,8 +77,9 @@ _Last updated: 2026-09-16_
 
 ## Repo state
 
-- `main` is current (`24b962a` as of this session — Stage 17 — committed **and pushed** to
-  `origin/main`, along with Stages 14–16 which were still unpushed at this session's start); no other
+- `main` is **ahead of `origin/main`, unpushed on purpose**: Paul's sort fix (`2c85bea`) plus Stage 18
+  (`3211034`, `183d9fa`) and this session's docs commit. Pushing is held until Paul's ready to authorise
+  the private ClarityLinks repository for Xcode Cloud — its first build fails until then. No other
   active branches.
 - Working tree clean once this session's documentation commit lands.
 - `Slideshow/` is organised into `App/`/`Views/`/`Views/ViewModels/`/`Models/`/`Services/`/

@@ -213,11 +213,33 @@ Stages 14–16 committed to `main` as of 2026-09-15 (`09633e1`, `9fef54e`, `5b8d
 Stage 17 committed and pushed to `origin/main` as of 2026-09-16 (`710ecc0` through `24b962a`, five
 commits).
 
+Between sessions, Paul bumped `MARKETING_VERSION` to 1.2.0 (`1c6cef9`) and switched the slide sort to
+`compare(_:options: .numeric)` so `file2` sorts before `file12` (`2c85bea`, with a new test).
+
+18. Stage 18 (2026-10-16): housekeeping plus a sort follow-up, each stage confirmed with Paul before
+    moving on:
+    - Lint: SwiftLint 0.65.1 added a `legacy_swiftui_aspect_ratio` rule, flagging `SlideView`'s
+      `.aspectRatio(contentMode: .fit)`; swapped for the equivalent `.scaledToFit()`.
+    - A: deleted the untouched 2023 XCTest template (`SlideshowTests/SlideshowTests.swift`) via the Xcode
+      MCP. Paul linked `ClarityTesting` into both test targets.
+    - B (p596): slide order now matches Finder — `localizedStandardCompare` instead of
+      `.numeric`, so sorting is also case-insensitive and locale-aware (`apple.jpg` before `Beach.jpg`).
+      Regression test `loadingAFolderOfImagesSortsThemLikeFinder` (tagged `.clarity(596, …)`) failed
+      before the fix and passes after. The new test pushed `ContentViewModelTests` to 253 lines, over
+      SwiftLint's `type_body_length` limit, so the existing alphabetical and natural-order tests were
+      merged into one parameterised test.
+    - Confirmed by Paul in the running app; p596 marked Completed. 36 test cases passing, zero SwiftLint
+      warnings.
+
+Stage 18 committed locally (`3211034`, `183d9fa`) — **not yet pushed**, at Paul's request. The first push
+triggers Xcode Cloud's first build with the private ClarityLinks package, which fails until the
+repository is authorised (see the ClarityLinks README).
+
 ## Next stages: confirmed order
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
 (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage. As of
-Stage 17, this (`p292`, Backlog) is the *only* item left in Clarity's backlog for this project.
+Stage 18, this (`p292`, Backlog) is the *only* item left in Clarity's backlog for this project.
 
 No further stage confirmed yet — check Clarity for the current outstanding backlog before starting new
 work.

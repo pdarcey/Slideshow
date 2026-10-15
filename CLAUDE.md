@@ -11,7 +11,9 @@ windows are supported — each remembers its own folder and selected image acros
 It prioritises **simplicity** over "full-featuredness". It is there to display images as a slideshow; that's all!
 
 - Bundle ID: `com.xerodonia.Slideshow`
-- Deployment target: macOS 15 (Sequoia)
+- Deployment target: macOS 15.6 (Sequoia) for the app — this project supports Sequoia, overriding the
+  global "macOS 26" default, and is tested on a real macOS 15.7.9 machine too. The two test targets are
+  set to macOS 26.0.
 - Sandboxed app. Sandbox capabilities (`app-sandbox`, `files.user-selected.read-only`) are configured
   via Xcode's Signing & Capabilities UI as `ENABLE_APP_SANDBOX`/`ENABLE_USER_SELECTED_FILES` build
   settings rather than the raw `Slideshow.entitlements` file (which Xcode leaves as an empty `<dict/>`
@@ -39,9 +41,16 @@ xcodebuild -project Slideshow.xcodeproj -scheme Slideshow test \
 Prefer the Xcode MCP server for builds/tests/adding files when it's available, per global
 instructions.
 
-`SlideshowTests/ContentViewModelTests.swift` has real Swift Testing coverage (26 tests) for
-`ContentView.ViewModel`'s loading/persistence logic, using real temp directories and real image
-files rather than mocks. `SlideshowUITests` is still unmodified Xcode boilerplate.
+`SlideshowTests` has real Swift Testing coverage (36 test cases): `ContentViewModelTests.swift` for
+`ContentView.ViewModel`'s loading/persistence/sorting logic, and `GrantedFolderStoreTests.swift` for
+the granted-folder dedup logic — both using real temp directories, real image files and isolated
+`UserDefaults` suites rather than mocks. `ContentViewModelTests` sits close to SwiftLint's 250-line
+`type_body_length` limit; prefer parameterised `@Test(arguments:)` over near-duplicate tests when adding
+more. `SlideshowUITests` is still unmodified Xcode boilerplate.
+
+`ClarityTesting` (from `https://github.com/pdarcey/ClarityLinks`) is linked into both test targets
+(never the app). Tests written because of a bug get tagged `@Test(.clarity(<issue>, "title"))` —
+e.g. `loadingAFolderOfImagesSortsThemLikeFinder` (p596).
 
 **Build tooling** (added via `initialise-new-project`): a `SwiftLint` Run Script phase runs
 immediately after Compile Sources — `.swiftlint.yml` at the repo root configures `line_length`

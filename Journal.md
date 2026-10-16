@@ -350,6 +350,25 @@ orange badge until it looked like weak tea. The About window then got the simple
 `NSApplication.shared.applicationIconImage` instead of keeping a second copy of the artwork. One copy
 of the icon is the only copy that can't fall out of date.
 
+**Four signatures and a parcel.** The first TestFlight upload was a lesson in how many times a Mac app
+gets signed on its way to Apple. Think of posting a parcel. The *archive* is the packed box: a
+Release build with its debug symbols, signed with Paul's everyday development certificate, like a
+name scrawled on the flap. The *export* is the post-office counter. It re-signs the app with an
+**Apple Distribution** certificate, tucks a Mac App Store provisioning profile inside (the customs
+form saying which team owns this app), and wraps it all in a `.pkg`. The package then gets its own
+signature from the **Mac Installer Distribution** certificate. `pkgutil` still calls that one by its
+old name, "3rd Party Mac Developer Installer", and labels it "(Development)", which looks alarming
+until you learn it's normal. Neither distribution certificate existed until the export asked
+for them. With `-allowProvisioningUpdates`, Xcode quietly created both in Paul's account, which is
+why that step got its own go-ahead. The *upload* posts the parcel. App Store Connect then opens it
+and checks everything — the signatures, the privacy manifest, the encryption flag — before calling it
+`VALID`.
+
+One detail is easy to trip over: the project's `CURRENT_PROJECT_VERSION` says 31, but the build that
+went up was 58. The "Update Build Number" phase stamps the git commit count into the finished
+`Info.plist` after Xcode has used the project setting. So `asc`'s own version-editing commands are
+best left alone here, or they'd fight the script.
+
 ## Engineer's Wisdom
 
 - **When something's intermittent, don't reason about it — log it and reproduce it.** Both Stage 5

@@ -15,12 +15,14 @@ _Last updated: 2026-10-16_
 - `CFBundleVersion` bumps automatically from `git rev-list --count main` on every build. `MARKETING_VERSION`
   is now `1.2.0` (bumped deliberately by Paul after Stage 17).
 
-## Release readiness (Stage 20)
+## Release status
 
-- Ready to archive and upload to TestFlight: the Release build is clean, with the privacy manifest,
-  encryption setting and copyright line in place. Signing is automatic, Hardened Runtime and the
-  App Sandbox are on, and the App Store category is set.
-- App Store Connect record exists (app ID `6823400593`) with **no builds uploaded yet**.
+- **On TestFlight:** 1.2.0 (58), uploaded and processed (`VALID`) on 2026-10-16 (Stage 21). It expires
+  2027-01-13. Paul is setting up TestFlight groups and distribution himself. The upload commands are in
+  `CLAUDE.md` › "Releasing to TestFlight".
+- The release setup is in place: privacy manifest, encryption setting, copyright line, automatic
+  signing with cloud-managed distribution certificates, Hardened Runtime, App Sandbox and App Store
+  category. App Store Connect app ID: `6823400593`.
 - Still to do in App Store Connect:
   - External TestFlight testers need Beta App Review: a beta description, feedback email and test
     notes.

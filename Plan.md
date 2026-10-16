@@ -262,8 +262,16 @@ Stage 19 committed locally, not pushed (same reason as Stage 18).
     - Confirmed by Paul (Get Info shows the copyright). Remaining App Store Connect steps are listed in
       `Status.md`.
 
-**Next: Stage 21, archive and upload to TestFlight.** It publishes to Apple, so confirm the exact
-command with Paul first, or Paul uploads from Xcode's Organizer.
+21. Stage 21 (2026-10-16): first TestFlight upload, done with `asc` and explained step by step, with
+    Paul approving the export (it changes his Apple account) and the upload separately:
+    - Archive: 1.2.0 (58), universal, with the privacy manifest, icon and dSYMs.
+    - Export: Xcode created cloud-managed Apple Distribution and Mac Installer Distribution certificates
+      and a "Mac Team Store" provisioning profile. Package signature and entitlements checked before
+      upload.
+    - Upload: build `01897bd1-d9e0-4444-b204-cf90605c88d5` processed as **VALID**, with no export
+      compliance question and minimum macOS 15.6. Expires 2027-01-13.
+    - The commands are in `CLAUDE.md` › "Releasing to TestFlight". Paul handles TestFlight groups and
+      distribution.
 
 ## Next stages: confirmed order
 

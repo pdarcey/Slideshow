@@ -14,7 +14,9 @@ It prioritises **simplicity** over "full-featuredness". It is there to display i
 - Deployment target: macOS 15.6 (Sequoia) for the app — this project supports Sequoia, overriding the
   global "macOS 26" default, and is tested on a real macOS 15.7.9 machine too. The two test targets are
   set to macOS 26.0.
-- Sandboxed app. Sandbox capabilities (`app-sandbox`, `files.user-selected.read-only`) are configured
+- Sandboxed app. Sandbox capabilities (`app-sandbox`, `files.user-selected.read-only`, and — deliberately —
+  read-only access to the Pictures and Downloads folders, the two places users most often keep images
+  to show) are configured
   via Xcode's Signing & Capabilities UI as `ENABLE_APP_SANDBOX`/`ENABLE_USER_SELECTED_FILES` build
   settings rather than the raw `Slideshow.entitlements` file (which Xcode leaves as an empty `<dict/>`
   once a capability's been added this way — that's expected, not a sign anything's missing).
@@ -23,6 +25,36 @@ It prioritises **simplicity** over "full-featuredness". It is there to display i
   in** (file timestamps, disk space, system boot time, active keyboards), or uploads get flagged
   (ITMS-91053). `ITSAppUsesNonExemptEncryption = NO` and `NSHumanReadableCopyright` are set as
   `INFOPLIST_KEY_*` build settings. App Store Connect app ID: `6823400593`.
+
+## Releasing to TestFlight
+
+Done with `asc` from the repo root (first done in Stage 21). Uploading publishes to Apple and uses up the
+build number for good, so confirm with Paul before step 3. Paul manages TestFlight groups and
+distribution himself. Keep artefacts out of the repo (e.g. in the session scratchpad).
+
+```sh
+# 0. Build number: CFBundleVersion is stamped from `git rev-list --count main` by the last build phase,
+#    so CURRENT_PROJECT_VERSION in the project is ignored. Don't use `asc xcode version edit`; it would
+#    fight the script. Check the next safe number Apple will accept:
+asc builds next-build-number --app 6823400593 --platform MAC_OS --version <marketing version>
+
+# 1. Archive (Release, universal, signed with Apple Development)
+asc xcode archive --project Slideshow.xcodeproj --scheme Slideshow --configuration Release --clean \
+  --archive-path <dir>/Slideshow.xcarchive \
+  --xcodebuild-flag=-destination --xcodebuild-flag=generic/platform=macOS --output json
+
+# 2. Export to a .pkg: re-signs the app with Apple Distribution plus the Mac App Store profile, and signs
+#    the package with the installer certificate (both certificates are cloud-managed by Xcode)
+asc xcode export --archive-path <dir>/Slideshow.xcarchive --pkg-path <dir>/Slideshow.pkg \
+  --xcodebuild-flag=-allowProvisioningUpdates --output json
+
+# 3. Upload and wait for processing (--version/--build-number are required for a .pkg)
+asc builds upload --app 6823400593 --pkg <dir>/Slideshow.pkg --version <x.y.z> --build-number <n> --wait
+```
+
+To check the result: `asc builds info --build-id <id> --output json` should show `processingState: VALID`.
+To check the signing before uploading: use `pkgutil --check-signature` on the `.pkg`, and `codesign -dvv`
+on the app after `pkgutil --expand-full`.
 
 ## Commands
 

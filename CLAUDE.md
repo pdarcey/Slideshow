@@ -214,6 +214,17 @@ restore, Finder/Dock opens, closing a stale window). Each open `Slideshow` windo
   `Window` scene with `.thickMaterial` background, no title bar, `.restorationBehavior(.disabled)`,
   and `.windowResizability(.contentSize)`. The Help *menu* (`Cmd+Shift+?`) instead opens Apple Help
   Book content via `NSHelpManager` — two separate, deliberately non-duplicate help mechanisms.
+- **App icon** (Stage 19): a Liquid Glass Icon Composer file, `AppIcon.icon`, at the *repo root* (not
+  under `Slideshow/`), in the `Slideshow` target. An `.icon` file **replaces** the asset-catalog
+  `AppIcon` completely — Xcode won't use both — so there is no `AppIcon.appiconset` any more; for the
+  macOS 15.6 deployment target, Xcode generates a flat `AppIcon.icns` from the `.icon` at build time.
+  To check that fallback without a macOS 15 machine, convert the built app's
+  `Contents/Resources/AppIcon.icns` with `sips -s format png`. The source artwork is `logo.svg` at the
+  repo root (top-level `<g>` = one Icon Composer layer; full-bleed, no mask or shadow), with `logo.png`
+  as the classic-shape render used by the README. In Icon Composer, keep translucency *off* for the
+  badge/play layers — at 0.3 the blue shows through and turns the orange badge brown.
+  `AboutView` shows `NSApplication.shared.applicationIconImage` rather than its own copy of the
+  artwork, so it always matches the Dock and there's no separate icon asset to keep in sync.
 
 ### Concurrency note
 

@@ -235,11 +235,29 @@ Stage 18 committed locally (`3211034`, `183d9fa`) — **not yet pushed**, at Pau
 triggers Xcode Cloud's first build with the private ClarityLinks package, which fails until the
 repository is authorised (see the ClarityLinks README).
 
+19. Stage 19 (2026-10-16): new app icon.
+    - Six drafts, then three recolours of the chosen one, reviewed on an artifact page; Paul picked
+      "Next Slide" (a framed photo with a play badge) in Xerodonia colours with a sunset photo (2c).
+    - `logo.svg` (layered for Icon Composer) and `logo.png` at the repo root; the README shows the logo.
+    - Paul built `AppIcon.icon` in Icon Composer from the per-layer SVGs, using Icon Composer's own
+      gradient fill for the background. Apple's docs (checked via the Xcode MCP) say an `.icon` replaces
+      the asset-catalog icon, with Xcode generating the older-OS version itself — so the original plan to
+      keep a hand-made `AppIcon.appiconset` for macOS 15 was dropped, and the old set removed.
+    - Two fixes found by rendering the generated `.icns`: the default appearance still had Icon
+      Composer's automatic `#0088FF` fill (only the dark appearance had the chosen gradient), and the
+      group's 0.3 translucency turned the orange badge brown. Both fixed in Icon Composer.
+    - `AboutView` now shows the real app icon (`NSApplication.shared.applicationIconImage`); the
+      `AboutIcon` asset is gone.
+    - Confirmed by Paul on this Mac. Not yet checked on a real macOS 15 machine — tracked as p597.
+
+Stage 19 committed locally, not pushed (same reason as Stage 18).
+
 ## Next stages: confirmed order
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides
 (fade/slide/flip/grow-shrink) — low priority, large scope on its own; revisit as a future stage. As of
-Stage 18, this (`p292`, Backlog) is the *only* item left in Clarity's backlog for this project.
+Stage 19, this (`p292`, Backlog) is the *only* item left in Clarity's backlog for this project, alongside
+`p597` (Current: check the new icon on a real macOS 15 machine).
 
 No further stage confirmed yet — check Clarity for the current outstanding backlog before starting new
 work.

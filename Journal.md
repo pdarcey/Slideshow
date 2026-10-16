@@ -334,6 +334,22 @@ lines. And the session opened with a lint warning nobody had caused: upgrading S
 added a `legacy_swiftui_aspect_ratio` rule, which flagged `.aspectRatio(contentMode: .fit)` — swapped
 for the identical `.scaledToFit()`.
 
+**The icon that took off its Beta badge.** Slideshow's icon had worn a blue "Beta" banner since 2023.
+The replacement went through two rounds on a review page: six directions, then three recolours of the
+winner. The final design is a framed sunset photo with an orange play button, on Xerodonia blue. The
+plan was to have it both ways: a Liquid Glass `.icon` for macOS 26, and the old-style asset-catalog
+icon kept for macOS 15. Apple's docs killed that idea before any work went into it. An Icon Composer
+file *replaces* the asset catalog's icon outright, and Xcode renders the older-OS version itself at
+build time. It's a bit like a translator who insists on doing every language, the original included.
+
+Trusting the generated icon still meant looking at it. The built app's `AppIcon.icns` converts to a
+PNG with one `sips` command, and that render caught two problems that looked fine in Icon Composer's
+dark preview. First, the gradient had only been set for the *dark* appearance, so the default icon
+was Icon Composer's stock sky-blue. Second, the glass translucency let the blue soak through the
+orange badge until it looked like weak tea. The About window then got the simplest fix of all: show
+`NSApplication.shared.applicationIconImage` instead of keeping a second copy of the artwork. One copy
+of the icon is the only copy that can't fall out of date.
+
 ## Engineer's Wisdom
 
 - **When something's intermittent, don't reason about it — log it and reproduce it.** Both Stage 5
@@ -394,6 +410,11 @@ for the identical `.scaledToFit()`.
   (Same instinct as `localizedStandardContains` for filtering user input.)
 - **A new lint warning on unchanged code usually means the linter changed, not the code.** Check the
   tool's version before going looking for a regression.
+- **Read the platform docs before planning around a build tool.** "Keep both icon formats" sounded
+  sensible and wasn't possible. One documentation search changed the plan before anyone built an
+  icon set that Xcode would have ignored.
+- **Check generated output, not just the source.** Icon Composer looked right; the `.icns` Xcode
+  actually shipped showed the wrong fill and a muddy badge.
 
 ## If I Were Starting Over…
 

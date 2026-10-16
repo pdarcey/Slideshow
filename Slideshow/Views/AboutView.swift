@@ -27,17 +27,16 @@ struct AboutView: View {
     }
     var body: some View {
         HStack {
-            Image("AboutIcon")
+            // The app's real icon, exactly as the Dock shows it: the Liquid
+            // Glass AppIcon.icon on macOS 26, or Xcode's generated fallback on
+            // earlier releases. It already carries the system shape, margin
+            // and shadow, so no clipping or shadow here — and no separate
+            // copy of the artwork to keep in sync.
+            Image(nsImage: NSApplication.shared.applicationIconImage)
                 .resizable().scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 15))
-                .shadow(radius: 3)
                 // Purely decorative — "Slideshow" right next to it already
                 // conveys the app's identity to VoiceOver.
                 .accessibilityHidden(true)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 15)
-//                        .stroke(Color.white, lineWidth: 3)
-//                )
             VStack {
                 Text("Slideshow")
                     .font(.largeTitle)

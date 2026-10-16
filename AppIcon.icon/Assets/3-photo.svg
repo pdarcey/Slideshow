@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f6cf6"/><stop offset="1" stop-color="#0b40af"/></linearGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8b93d"/><stop offset="1" stop-color="#e77c39"/></linearGradient>
+  </defs>
+  <g id="photo" transform="translate(512 512) scale(1.24) translate(-512 -500)">
+    <rect x="240" y="300" width="544" height="400" rx="18" fill="#ffde9a"/>
+    <circle cx="386.88" cy="420" r="48" fill="#e77c39"/>
+    <polygon points="240,612 403.2,468 522.88,580 631.68,492 784,620 784,676 240,676" fill="#6e96ef"/>
+    <path d="M240,644 L446.72,548 L620.8,668 L784,596 L784,682 A18,18 0 0 1 766,700 L258,700 A18,18 0 0 1 240,682 Z" fill="#115bf6"/>
+  </g>
+</svg>

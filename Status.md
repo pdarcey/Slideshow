@@ -64,11 +64,15 @@ _Last updated: 2026-10-16_
   slideshow.
 - Dynamic window title (folder name + image count) distinguishes multiple open windows; default window
   size 1500×1500.
+- New app icon (Stage 19): a Liquid Glass `AppIcon.icon` on macOS 26, with Xcode generating the flat
+  version for macOS 15. The About window shows the real app icon, so it always matches the Dock.
 
 ## Known gaps (tracked in Clarity, not yet started)
 
+- The new app icon hasn't been checked on a real macOS 15 machine yet (`p597`, Current). The icon
+  Xcode generates for it looked right when rendered from the build.
 - Multiple selectable slide-transition styles (fade/slide/flip/grow-shrink, `p292`) — deliberately
-  deferred, low priority, large scope on its own. As of Stage 18, this is the *only* item left in
+  deferred, low priority, large scope on its own. As of Stage 19, this is the *only* item left in
   Clarity's backlog for this project — every other tracked issue is Completed.
 - Not fixable from this codebase: the app can't appear in System Settings' per-app Text Size list
   (Accessibility → Display → Text Size) — confirmed via Apple Developer Forums (including a DTS
@@ -77,8 +81,8 @@ _Last updated: 2026-10-16_
 
 ## Repo state
 
-- `main` is **ahead of `origin/main`, unpushed on purpose**: Paul's sort fix (`2c85bea`) plus Stage 18
-  (`3211034`, `183d9fa`) and this session's docs commit. Pushing is held until Paul's ready to authorise
+- `main` is **ahead of `origin/main`, unpushed on purpose**: Paul's sort fix (`2c85bea`), Stage 18
+  (`3211034`, `183d9fa`, docs `a25a5be`) and the Stage 19 icon commit. Pushing is held until Paul's ready to authorise
   the private ClarityLinks repository for Xcode Cloud — its first build fails until then. No other
   active branches.
 - Working tree clean once this session's documentation commit lands.

@@ -15,6 +15,20 @@ _Last updated: 2026-10-16_
 - `CFBundleVersion` bumps automatically from `git rev-list --count main` on every build. `MARKETING_VERSION`
   is now `1.2.0` (bumped deliberately by Paul after Stage 17).
 
+## Release readiness (Stage 20)
+
+- Ready to archive and upload to TestFlight: the Release build is clean, with the privacy manifest,
+  encryption setting and copyright line in place. Signing is automatic, Hardened Runtime and the
+  App Sandbox are on, and the App Store category is set.
+- App Store Connect record exists (app ID `6823400593`) with **no builds uploaded yet**.
+- Still to do in App Store Connect:
+  - External TestFlight testers need Beta App Review: a beta description, feedback email and test
+    notes.
+  - Before App Store submission: rename the version record from `1.0` to `1.2.0`, and add a privacy
+    policy URL and the App Privacy answers ("Data Not Collected").
+- Worth checking before App Store review: `NSAppleEventsUsageDescription` describes *receiving* folders,
+  which normally needs no usage description. A reviewer may ask about it.
+
 ## What works today
 
 - Full-screen slideshow of a folder's images: manual navigation (arrow keys, space, tap-to-advance),

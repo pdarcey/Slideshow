@@ -18,6 +18,11 @@ It prioritises **simplicity** over "full-featuredness". It is there to display i
   via Xcode's Signing & Capabilities UI as `ENABLE_APP_SANDBOX`/`ENABLE_USER_SELECTED_FILES` build
   settings rather than the raw `Slideshow.entitlements` file (which Xcode leaves as an empty `<dict/>`
   once a capability's been added this way — that's expected, not a sign anything's missing).
+- App Store: `Slideshow/PrivacyInfo.xcprivacy` (app target only) declares no tracking, no collected
+  data, and `UserDefaults` with reason `CA92.1`. **Update it whenever a new "required reason" API comes
+  in** (file timestamps, disk space, system boot time, active keyboards), or uploads get flagged
+  (ITMS-91053). `ITSAppUsesNonExemptEncryption = NO` and `NSHumanReadableCopyright` are set as
+  `INFOPLIST_KEY_*` build settings. App Store Connect app ID: `6823400593`.
 
 ## Commands
 

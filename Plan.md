@@ -252,6 +252,19 @@ repository is authorised (see the ClarityLinks README).
 
 Stage 19 committed locally, not pushed (same reason as Stage 18).
 
+20. Stage 20 (2026-10-16): TestFlight readiness. A review against App Store requirements found the
+    Release build, signing, sandbox, icon and category already fine, and no builds yet in App Store
+    Connect. Added:
+    - `PrivacyInfo.xcprivacy` (via the Xcode MCP, app target only): no tracking, no collected data,
+      `UserDefaults` declared with reason `CA92.1`.
+    - `ITSAppUsesNonExemptEncryption = NO`, so builds don't stop at "Missing Compliance".
+    - `NSHumanReadableCopyright`, shown in Finder's Get Info.
+    - Confirmed by Paul (Get Info shows the copyright). Remaining App Store Connect steps are listed in
+      `Status.md`.
+
+**Next: Stage 21, archive and upload to TestFlight.** It publishes to Apple, so confirm the exact
+command with Paul first, or Paul uploads from Xcode's Organizer.
+
 ## Next stages: confirmed order
 
 **Deferred, not part of this stage plan:** multiple selectable transition styles between slides

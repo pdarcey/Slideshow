@@ -97,11 +97,11 @@ _Last updated: 2026-10-16_
 
 ## Repo state
 
-- `main` is **ahead of `origin/main`, unpushed on purpose**: Paul's sort fix (`2c85bea`), Stage 18
-  (`3211034`, `183d9fa`, docs `a25a5be`) and the Stage 19 icon commit. Pushing is held until Paul's ready to authorise
-  the private ClarityLinks repository for Xcode Cloud — its first build fails until then. No other
-  active branches.
-- Working tree clean once this session's documentation commit lands.
+- `main` was pushed to `origin/main` on 2026-10-16 (up to `21e438f`, Stage 21 docs), plus this session's
+  end-of-session docs commit. No other active branches.
+- ClarityTesting is a private package. If Xcode Cloud builds this repo, its first build after this push
+  fails until the repository is authorised (pending agreements in App Store Connect, then **Repository
+  Issue** on the failed build in Xcode's Report navigator › Cloud).
 - `Slideshow/` is organised into `App/`/`Views/`/`Views/ViewModels/`/`Models/`/`Services/`/
   `Extensions/` (Stage 11 housekeeping — file moves only, no code changes). `Info.plist`,
   `Slideshow.entitlements`, `Assets.xcassets`, and `Preview Content/` stay flat under `Slideshow/`,

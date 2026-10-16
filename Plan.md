@@ -280,8 +280,17 @@ Stage 19 committed locally, not pushed (same reason as Stage 18).
 Stage 19, this (`p292`, Backlog) is the *only* item left in Clarity's backlog for this project, alongside
 `p597` (Current: check the new icon on a real macOS 15 machine).
 
-No further stage confirmed yet — check Clarity for the current outstanding backlog before starting new
-work.
+No further stage confirmed yet. Candidates as of 2026-10-16 (check Clarity first):
+- `p597`: check the new icon on the macOS 15.7.9 machine, most easily via the TestFlight build. If
+  Xcode's generated icon looks poor there, the fallback is in the issue.
+- Version number (p598): `MARKETING_VERSION` is 1.2.0 but the newest git tag is 1.2.1, so TestFlight
+  build 58 went up as 1.2.0. Bump to the intended release number before the next upload.
+- App Store submission prep (see `Status.md` › "Release status"):
+  - rename the version record from `1.0` to the release version
+  - privacy policy URL and App Privacy answers
+  - decide whether `NSAppleEventsUsageDescription` is needed
+- Possibly move the project to Swift 6 language mode: `SWIFT_VERSION` is still 5.0, against the global
+  Swift 6.2 guidance. Not needed for release.
 
 ## Working rhythm (established over Stage 5)
 
